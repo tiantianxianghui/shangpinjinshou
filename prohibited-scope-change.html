@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>禁售范围变更</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif; background: #f0f2f5; color: #333; }
+    .app-container { padding: 20px; }
+    .page-header { display: flex; align-items: center; margin-bottom: 20px; }
+    .page-header .back-btn { color: #409eff; cursor: pointer; font-size: 14px; margin-right: 16px; display: flex; align-items: center; gap: 4px; }
+    .page-header .back-btn:hover { color: #ff6600; }
+    .page-header h2 { font-size: 18px; font-weight: 600; color: #303133; }
+    .info-card { background: #fff; border-radius: 4px; padding: 20px; margin-bottom: 16px; }
+    .info-row { display: flex; flex-wrap: wrap; gap: 24px; }
+    .info-item { display: flex; align-items: center; font-size: 14px; }
+    .info-item .label { color: #909399; margin-right: 8px; }
+    .info-item .value { color: #303133; font-weight: 500; }
+    .form-card { background: #fff; border-radius: 4px; padding: 20px; margin-bottom: 16px; }
+    .form-card .card-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #ebeef5; }
+    .el-form-item { margin-bottom: 20px; }
+    .btn-search { background: #ff6600; border-color: #ff6600; color: #fff; }
+    .btn-search:hover { background: #e65c00; border-color: #e65c00; }
+    .btn-cancel { background: #fff; border-color: #dcdfe6; color: #606266; }
+    .btn-cancel:hover { color: #ff6600; border-color: #ff6600; }
+    .form-actions { display: flex; justify-content: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #ebeef5; }
+    .required::before { content: '*'; color: #f56c6c; margin-right: 4px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="app-container">
+    <!-- 页面头部 -->
+    <div class="page-header">
+      <span class="back-btn" @click="goBack">
+        <i class="el-icon-arrow-left"></i> 返回
+      </span>
+      <h2>禁售范围变更</h2>
+    </div>
+
+    <!-- 申请基本信息 -->
+    <div class="info-card">
+      <div class="info-row">
+        <div class="info-item">
+          <span class="label">申请编号：</span>
+          <span class="value">{{ applyInfo.applyNo }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">SKU：</span>
+          <span class="value">{{ applyInfo.sku }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">货品编码：</span>
+          <span class="value">{{ applyInfo.productCode }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">禁售类型：</span>
+          <span class="value">{{ applyInfo.prohibitType }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">平台：</span>
+          <span class="value">{{ applyInfo.platform }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">销售模式：</span>
+          <span class="value">{{ applyInfo.salesMode }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">站点：</span>
+          <span class="value">{{ applyInfo.site }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">市场：</span>
+          <span class="value">{{ applyInfo.market }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">物流区域：</span>
+          <span class="value">{{ applyInfo.logisticsArea }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">仓库：</span>
+          <span class="value">{{ applyInfo.warehouse }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 变更表单 -->
+    <div class="form-card">
+      <div class="card-title">变更范围</div>
+      <el-form :model="form" label-width="120px" size="small">
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="变更平台" class="required">
+              <el-select v-model="form.platforms" multiple placeholder="请选择变更平台" style="width:100%;" filterable>
+                <el-option label="Amazon" value="Amazon"></el-option>
+                <el-option label="Tiktok" value="Tiktok"></el-option>
+                <el-option label="Vevor" value="vevor"></el-option>
+                <el-option label="独立站" value="独立站"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="变更销售模式">
+              <el-select v-model="form.salesModes" multiple placeholder="请选择变更销售模式" style="width:100%;" filterable>
+                <el-option label="FBM" value="FBM"></el-option>
+                <el-option label="FBA" value="FBA"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="变更站点" class="required">
+              <el-select v-model="form.sites" multiple placeholder="请选择变更站点" style="width:100%;" filterable>
+                <el-option label="US" value="US"></el-option>
+                <el-option label="DE" value="DE"></el-option>
+                <el-option label="UK" value="UK"></el-option>
+                <el-option label="NO" value="NO"></el-option>
+                <el-option label="FR" value="FR"></el-option>
+                <el-option label="IT" value="IT"></el-option>
+                <el-option label="ES" value="ES"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="变更店铺账号">
+              <el-select v-model="form.shopAccounts" multiple placeholder="请选择变更店铺账号" style="width:100%;" filterable>
+                <el-option label="US-Store-01" value="US-Store-01"></el-option>
+                <el-option label="DE-Store-01" value="DE-Store-01"></el-option>
+                <el-option label="UK-Store-01" value="UK-Store-01"></el-option>
+                <el-option label="全部" value="全部"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="变更市场" class="required">
+              <el-select v-model="form.markets" multiple placeholder="请选择变更市场" style="width:100%;" filterable>
+                <el-option label="北美" value="北美"></el-option>
+                <el-option label="欧洲" value="欧洲"></el-option>
+                <el-option label="东南亚" value="东南亚"></el-option>
+                <el-option label="日本" value="日本"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="变更物流区域">
+              <el-select v-model="form.logisticsAreas" multiple placeholder="请选择变更物流区域" style="width:100%;" filterable>
+                <el-option label="美东" value="美东"></el-option>
+                <el-option label="美西" value="美西"></el-option>
+                <el-option label="欧洲仓" value="欧洲仓"></el-option>
+                <el-option label="东南亚仓" value="东南亚仓"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="变更仓库">
+              <el-select v-model="form.warehouses" multiple placeholder="请选择变更仓库" style="width:100%;" filterable>
+                <el-option label="美东仓" value="美东仓"></el-option>
+                <el-option label="美西仓" value="美西仓"></el-option>
+                <el-option label="德国仓" value="德国仓"></el-option>
+                <el-option label="英国仓" value="英国仓"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="变更说明" class="required">
+          <el-input type="textarea" v-model="form.remark" placeholder="请输入变更说明" :rows="4" maxlength="500" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="附件">
+          <el-upload
+            action="#"
+            :auto-upload="false"
+            :on-change="handleFileChange"
+            :file-list="fileList"
+            multiple
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">支持 word、excel、ppt、pdf、图片等格式</div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="form-card" style="padding: 16px 20px;">
+      <div class="form-actions">
+        <el-button size="small" class="btn-cancel" @click="goBack">取 消</el-button>
+        <el-button size="small" class="btn-search" @click="handleSubmit">提 交</el-button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+new Vue({
+  el: '#app',
+  data() {
+    return {
+      applyNo: '',
+      applyInfo: {
+        applyNo: '', sku: '', productCode: '', prohibitType: '',
+        platform: '', salesMode: '', site: '', market: '',
+        logisticsArea: '', warehouse: ''
+      },
+      form: {
+        platforms: [], salesModes: [], sites: [], shopAccounts: [],
+        markets: [], logisticsAreas: [], warehouses: [], remark: ''
+      },
+      fileList: []
+    };
+  },
+  mounted() {
+    this.applyNo = this.getQueryParam('applyNo') || '';
+    this.loadApplyInfo();
+  },
+  methods: {
+    getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    },
+    loadApplyInfo() {
+      // 模拟数据，实际应从接口获取
+      const mockData = {
+        applyNo: this.applyNo || '100001',
+        sku: 'SKU001',
+        productCode: 'PC-001',
+        prohibitType: 'SKU&市场',
+        platform: 'vevor',
+        salesMode: 'FBM',
+        site: 'NO',
+        market: '欧洲',
+        logisticsArea: '欧洲仓',
+        warehouse: '德国仓'
+      };
+      this.applyInfo = mockData;
+      // 默认选中当前值
+      if (mockData.platform) this.form.platforms = [mockData.platform];
+      if (mockData.salesMode) this.form.salesModes = [mockData.salesMode];
+      if (mockData.site) this.form.sites = [mockData.site];
+      if (mockData.market) this.form.markets = [mockData.market];
+      if (mockData.logisticsArea) this.form.logisticsAreas = [mockData.logisticsArea];
+      if (mockData.warehouse) this.form.warehouses = [mockData.warehouse];
+    },
+    handleFileChange(file, fileList) {
+      this.fileList = fileList;
+    },
+    goBack() {
+      window.location.href = 'prohibited-management.html';
+    },
+    handleSubmit() {
+      if (this.form.platforms.length === 0) { this.$message.warning('请选择变更平台'); return; }
+      if (this.form.sites.length === 0) { this.$message.warning('请选择变更站点'); return; }
+      if (this.form.markets.length === 0) { this.$message.warning('请选择变更市场'); return; }
+      if (!this.form.remark) { this.$message.warning('请输入变更说明'); return; }
+
+      this.$confirm('确认提交禁售范围变更申请？', '提示', {
+        confirmButtonText: '确 定',
+        cancelButtonText: '取 消',
+        type: 'warning'
+      }).then(() => {
+        this.$message.success('禁售范围变更申请已提交，进入审批流');
+        setTimeout(() => {
+          window.location.href = 'prohibited-management.html';
+        }, 1500);
+      }).catch(() => {});
+    }
+  }
+});
+</script>
+</body>
+</html>

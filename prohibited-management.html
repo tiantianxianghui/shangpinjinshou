@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>禁售商品管理</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif; background: #f0f2f5; color: #333; }
+    .app-container { padding: 20px; }
+
+    /* 搜索区域 */
+    .search-card { background: #fff; border-radius: 4px; padding: 20px 20px 10px; margin-bottom: 16px; }
+    .search-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+    .search-item { display: flex; flex-direction: column; }
+    .search-item label { font-size: 14px; color: #606266; margin-bottom: 6px; }
+    .search-item .el-input, .search-item .el-select { width: 220px; }
+    .search-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .btn-search { background: #ff6600; border-color: #ff6600; color: #fff; }
+    .btn-search:hover { background: #e65c00; border-color: #e65c00; }
+    .btn-reset { background: #fff; border-color: #dcdfe6; color: #606266; }
+    .btn-reset:hover { color: #ff6600; border-color: #ff6600; }
+    .expand-btn { color: #ff6600; cursor: pointer; font-size: 14px; border: none; background: none; display: flex; align-items: center; gap: 4px; }
+
+    /* 工具栏 */
+    .toolbar-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .btn-tool { background: #fff; border-color: #dcdfe6; color: #606266; }
+    .btn-tool:hover { color: #ff6600; border-color: #ff6600; }
+
+    /* 表格区域 */
+    .table-card { background: #fff; border-radius: 4px; padding: 20px; }
+    .el-table th { background: #f5f7fa !important; color: #606266; font-weight: 500; }
+    .el-table .el-button--text { color: #409eff; }
+    .pagination-wrapper { display: flex; justify-content: flex-end; align-items: center; margin-top: 16px; gap: 12px; }
+    .el-pagination .el-pager li.active { color: #ff6600; }
+    .el-pagination .el-pager li.active:hover { color: #ff6600; }
+    .el-pagination button:hover { color: #ff6600; }
+
+    /* 弹窗样式 */
+    .import-dialog .el-dialog__header { background: #fafafa; border-bottom: 1px solid #ebeef5; }
+    .import-dialog .el-dialog__title { font-weight: 600; }
+    .import-tabs .el-tabs__item.is-active { color: #ff6600; }
+    .import-tabs .el-tabs__active-bar { background-color: #ff6600; }
+    .upload-area { border: 2px dashed #dcdfe6; border-radius: 6px; padding: 40px; text-align: center; cursor: pointer; transition: border-color 0.3s; }
+    .upload-area:hover { border-color: #ff6600; }
+    .upload-area .el-icon-upload { font-size: 48px; color: #c0c4cc; }
+    .upload-area p { color: #909399; margin-top: 10px; }
+    .log-content { max-height: 400px; overflow-y: auto; }
+    .log-item { padding: 12px 0; border-bottom: 1px solid #ebeef5; }
+    .log-item:last-child { border-bottom: none; }
+    .log-time { color: #909399; font-size: 12px; }
+    .log-action { color: #606266; font-size: 14px; }
+    .log-user { color: #409eff; font-size: 12px; }
+
+    .hidden-row { display: none; }
+    .search-row.expanded .hidden-row { display: flex; }
+
+    /* 状态标签 */
+    .status-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .status-draft { background: #f4f4f5; color: #909399; }
+    .status-pending { background: #fdf6ec; color: #e6a23c; }
+    .status-reviewing { background: #ecf5ff; color: #409eff; }
+    .status-approved { background: #f0f9eb; color: #67c23a; }
+    .status-rejected { background: #fef0f0; color: #f56c6c; }
+
+    /* 操作列按钮统一蓝色 */
+    .action-btns .el-button--text { color: #409eff !important; }
+
+    /* 附件链接 */
+    .attachment-link { color: #409eff; cursor: pointer; text-decoration: underline; }
+    .attachment-link:hover { color: #ff6600; }
+
+    /* 操作列按钮组 */
+    .action-btns { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    /* 选中数据预览 */
+    .selected-preview { background: #f5f7fa; border-radius: 4px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #606266; }
+    .selected-preview strong { color: #ff6600; }
+
+    /* 日志时间线 */
+    .log-timeline { padding: 10px 0; }
+    .log-timeline .el-timeline-item__timestamp { color: #909399; font-size: 12px; }
+    .log-timeline .el-timeline-item__content { font-size: 14px; }
+
+    /* 范围变更表格 */
+    .scope-change-table { margin-top: 12px; }
+    .scope-change-table .el-table th { background: #f5f7fa !important; }
+
+    /* 编辑表单弹窗 */
+    .edit-form .el-form-item { margin-bottom: 16px; }
+    .edit-form .el-dialog__body { max-height: 60vh; overflow-y: auto; }
+
+    /* 告知人列样式 */
+    .notifier-cell { line-height: 1.8; font-size: 13px; }
+    .notifier-row { display: flex; align-items: flex-start; }
+    .notifier-role { color: #909399; flex-shrink: 0; min-width: 72px; }
+    .notifier-name { color: #303133; }
+    .notifier-platform { color: #409eff; font-size: 12px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="app-container">
+    <!-- 搜索区域 -->
+    <div class="search-card">
+      <div class="search-row" :class="{ expanded: searchExpanded }">
+        <div class="search-item">
+          <label>SKU</label>
+          <el-input v-model="searchForm.sku" placeholder="请输入SKU" size="small" clearable></el-input>
+        </div>
+        <div class="search-item">
+          <label>禁售类型</label>
+          <el-select v-model="searchForm.prohibitType" placeholder="请选择禁售类型" size="small" clearable>
+            <el-option label="SKU&市场" value="sku_market"></el-option>
+            <el-option label="SKU&物流区域" value="sku_logistics"></el-option>
+            <el-option label="SKU&仓库" value="sku_warehouse"></el-option>
+            <el-option label="SKU&市场&销售平台" value="sku_market_platform"></el-option>
+            <el-option label="SKU&销售平台" value="sku_platform"></el-option>
+            <el-option label="SKU&仓库&销售平台" value="sku_warehouse_platform"></el-option>
+            <el-option label="SKU&站点" value="sku_site"></el-option>
+            <el-option label="SKU&销售平台&站点" value="sku_platform_site"></el-option>
+            <el-option label="仓库&销售平台" value="warehouse_platform"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item">
+          <label>是否禁售</label>
+          <el-select v-model="searchForm.isProhibited" placeholder="请选择" size="small" clearable>
+            <el-option label="是" value="yes"></el-option>
+            <el-option label="否" value="no"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>货品编码</label>
+          <el-input v-model="searchForm.productCode" placeholder="请输入" size="small" clearable></el-input>
+        </div>
+        <div class="search-item hidden-row">
+          <label>市场</label>
+          <el-select v-model="searchForm.market" placeholder="请选择" size="small" clearable>
+            <el-option label="北美" value="na"></el-option>
+            <el-option label="欧洲" value="eu"></el-option>
+            <el-option label="东南亚" value="sea"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>物流区域</label>
+          <el-select v-model="searchForm.logisticsArea" placeholder="请选择" size="small" clearable>
+            <el-option label="美东" value="us_east"></el-option>
+            <el-option label="美西" value="us_west"></el-option>
+            <el-option label="欧洲仓" value="eu_warehouse"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>仓库名称</label>
+          <el-select v-model="searchForm.warehouse" placeholder="请选择仓库名称" size="small" clearable>
+            <el-option label="美东仓" value="us_east_wh"></el-option>
+            <el-option label="美西仓" value="us_west_wh"></el-option>
+            <el-option label="德国仓" value="de_wh"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>平台</label>
+          <el-select v-model="searchForm.platform" placeholder="请选择" size="small" clearable>
+            <el-option label="Amazon" value="amazon"></el-option>
+            <el-option label="Tiktok" value="tiktok"></el-option>
+            <el-option label="Vevor" value="vevor"></el-option>
+            <el-option label="独立站" value="independent"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>销售模式</label>
+          <el-select v-model="searchForm.salesMode" placeholder="请选择" size="small" clearable>
+            <el-option label="FBM" value="fbm"></el-option>
+            <el-option label="FBA" value="fba"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>站点</label>
+          <el-select v-model="searchForm.site" placeholder="请选择" size="small" clearable>
+            <el-option label="US" value="us"></el-option>
+            <el-option label="DE" value="de"></el-option>
+            <el-option label="UK" value="uk"></el-option>
+            <el-option label="NO" value="no"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>店铺账号</label>
+          <el-input v-model="searchForm.shopAccount" placeholder="请输入" size="small" clearable></el-input>
+        </div>
+        <div class="search-item hidden-row">
+          <label>一级禁售原因</label>
+          <el-select v-model="searchForm.primaryReason" placeholder="请选择" size="small" clearable>
+            <el-option label="侵权" value="infringement"></el-option>
+            <el-option label="质量问题" value="quality"></el-option>
+            <el-option label="合规问题" value="compliance"></el-option>
+            <el-option label="利润不达标" value="profit"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>二级禁售原因</label>
+          <el-select v-model="searchForm.secondaryReason" placeholder="请选择" size="small" clearable>
+            <el-option label="专利侵权" value="patent"></el-option>
+            <el-option label="商标侵权" value="trademark"></el-option>
+            <el-option label="产品缺陷" value="defect"></el-option>
+            <el-option label="投诉率过高" value="complaint"></el-option>
+          </el-select>
+        </div>
+        <div class="search-item hidden-row">
+          <label>申请单状态</label>
+          <el-select v-model="searchForm.status" placeholder="请选择" size="small" clearable>
+            <el-option label="草稿" value="draft"></el-option>
+            <el-option label="待审核" value="pending"></el-option>
+            <el-option label="审核中" value="reviewing"></el-option>
+            <el-option label="解禁审核中" value="unban_reviewing"></el-option>
+            <el-option label="禁售延期审核中" value="delay_reviewing"></el-option>
+            <el-option label="禁售范围变更审核中" value="scope_reviewing"></el-option>
+            <el-option label="审核通过" value="approved"></el-option>
+            <el-option label="驳回" value="rejected"></el-option>
+          </el-select>
+        </div>
+        <div class="search-actions">
+          <el-button type="primary" size="small" class="btn-search" @click="handleSearch">查 询</el-button>
+          <el-button size="small" class="btn-reset" @click="handleReset">重 置</el-button>
+          <button class="expand-btn" @click="searchExpanded = !searchExpanded">
+            {{ searchExpanded ? '收起' : '展开' }}
+            <i :class="searchExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工具栏 -->
+    <div class="toolbar-row">
+      <el-button size="small" class="btn-search" @click="handleApply">禁售申请</el-button>
+      <el-button size="small" class="btn-tool" @click="importDialogVisible = true">
+        <i class="el-icon-upload2"></i> 批量导入
+      </el-button>
+      <el-button size="small" class="btn-tool" @click="handleUnban">解禁</el-button>
+      <el-button size="small" class="btn-tool" @click="handleDelay">禁售延期</el-button>
+      <el-button size="small" class="btn-tool" @click="batchChangeDialogVisible = true">批量禁售范围变更</el-button>
+      <el-button size="small" class="btn-tool" @click="handleExport">
+        <i class="el-icon-download"></i> 导出
+      </el-button>
+    </div>
+
+    <!-- 表格区域 -->
+    <div class="table-card">
+      <el-table
+        :data="tableData"
+        border
+        style="width: 100%"
+        @selection-change="handleSelectionChange"
+        :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
+      >
+        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column prop="applyNo" label="申请编号" width="120"></el-table-column>
+        <el-table-column prop="prohibitType" label="禁售类型" min-width="140"></el-table-column>
+        <el-table-column prop="sku" label="SKU" min-width="140"></el-table-column>
+        <el-table-column prop="productCode" label="货品编码" min-width="120"></el-table-column>
+        <el-table-column label="销售平台/模式/站点" min-width="160">
+          <template slot-scope="scope">
+            <div>销售平台：{{ scope.row.platform }}</div>
+            <div>模式：{{ scope.row.salesMode }}</div>
+            <div>站点：{{ scope.row.site }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="shopAccount" label="店铺账号" min-width="120">
+          <template slot-scope="scope">{{ scope.row.shopAccount || '全部' }}</template>
+        </el-table-column>
+        <el-table-column prop="market" label="市场" width="100"></el-table-column>
+        <el-table-column prop="logisticsArea" label="物流区域" width="100"></el-table-column>
+        <el-table-column prop="warehouse" label="仓库" width="100"></el-table-column>
+        <el-table-column prop="expectedUnbanTime" label="预计解禁时间" width="120">
+          <template slot-scope="scope">
+            <span>{{ scope.row.expectedUnbanTime || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="primaryReason" label="一级禁售原因" width="120"></el-table-column>
+        <el-table-column prop="secondaryReason" label="二级禁售原因" width="120"></el-table-column>
+        <el-table-column prop="reasonDesc" label="原因说明" min-width="150">
+          <template slot-scope="scope">
+            <span style="color: #909399;">{{ scope.row.reasonDesc }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="solution" label="解决方案" min-width="120"></el-table-column>
+        <el-table-column prop="applicant" label="申请人" width="100"></el-table-column>
+        <el-table-column prop="applicantDept" label="申请人部门" width="100"></el-table-column>
+        <el-table-column prop="responsiblePerson" label="责任人" width="100"></el-table-column>
+        <el-table-column prop="responsibleDept" label="责任人部门" width="100"></el-table-column>
+        <el-table-column label="告知人" min-width="280">
+          <template slot-scope="scope">
+            <div class="notifier-cell">
+              <div class="notifier-row" v-if="scope.row.productNotifier">
+                <span class="notifier-role">产品告知人：</span>
+                <span class="notifier-name">{{ scope.row.productNotifier }}</span>
+              </div>
+              <div class="notifier-row" v-if="scope.row.opsNotifierList && scope.row.opsNotifierList.length">
+                <span class="notifier-role">运营告知人：</span>
+                <span class="notifier-name" v-for="(op, idx) in scope.row.opsNotifierList" :key="idx">
+                  {{ op.name }}<span class="notifier-platform" v-if="op.platform">（{{ op.platform }}）</span>
+                  <span v-if="idx < scope.row.opsNotifierList.length - 1">、</span>
+                </span>
+              </div>
+              <div class="notifier-row" v-else-if="scope.row.opsNotifier">
+                <span class="notifier-role">运营告知人：</span>
+                <span class="notifier-name">{{ scope.row.opsNotifier }}</span>
+              </div>
+              <div class="notifier-row" v-if="scope.row.planNotifier">
+                <span class="notifier-role">计划告知人：</span>
+                <span class="notifier-name">{{ scope.row.planNotifier }}</span>
+              </div>
+              <div class="notifier-row" v-if="scope.row.purchaseNotifier">
+                <span class="notifier-role">采购告知人：</span>
+                <span class="notifier-name">{{ scope.row.purchaseNotifier }}</span>
+              </div>
+              <div class="notifier-row" v-if="scope.row.logisticsNotifier">
+                <span class="notifier-role">物流告知人：</span>
+                <span class="notifier-name">{{ scope.row.logisticsNotifier }}</span>
+              </div>
+              <div class="notifier-row" v-if="scope.row.serviceNotifier">
+                <span class="notifier-role">客服告知人：</span>
+                <span class="notifier-name">{{ scope.row.serviceNotifier }}</span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="isSalesRecovery" label="是否销售在途追回" width="120" align="center">
+          <template slot-scope="scope">{{ scope.row.isSalesRecovery === 'yes' ? '是' : '否' }}</template>
+        </el-table-column>
+        <el-table-column prop="linkRemovalType" label="链接下架类型" min-width="140"></el-table-column>
+        <el-table-column prop="remark" label="备注说明" min-width="120"></el-table-column>
+        <el-table-column prop="attachment" label="附件" width="80" align="center">
+          <template slot-scope="scope">
+            <span v-if="scope.row.attachment" class="attachment-link" @click="downloadAttachment(scope.row)">下载</span>
+            <span v-else style="color: #c0c4cc;">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="申请单状态" width="100" align="center">
+          <template slot-scope="scope">
+            <span>{{ statusText(scope.row.status) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="isProhibited" label="禁售状态" width="100" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.status === 'approved' ? '是' : '否' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="applyTime" label="申请时间" width="160"></el-table-column>
+        <el-table-column prop="prohibitStartTime" label="禁售开始时间" width="160"></el-table-column>
+        <el-table-column prop="unbanTime" label="解禁时间" width="160"></el-table-column>
+        <el-table-column label="操作" width="280" fixed="right">
+          <template slot-scope="scope">
+            <div class="action-btns">
+              <el-button v-if="scope.row.status === 'draft' || scope.row.status === 'rejected'" type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+              <el-button v-if="scope.row.status === 'draft' || scope.row.status === 'pending'" type="text" size="small" @click="handleDelete(scope.row)">删除</el-button>
+              <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleSingleDelay(scope.row)">禁售延期</el-button>
+              <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleSingleUnban(scope.row)">解禁</el-button>
+              <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleScopeChange(scope.row)">禁售范围变更</el-button>
+              <el-button type="text" size="small" @click="handleLog(scope.row)">日志</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-wrapper">
+        <span style="color: #909399; font-size: 14px;">共{{ total }}条数据</span>
+        <el-pagination
+          background
+          layout="prev, pager, next, jumper, sizes"
+          :total="total"
+          :page-size="pageSize"
+          :current-page.sync="currentPage"
+          @current-change="handlePageChange"
+        ></el-pagination>
+      </div>
+    </div>
+
+    <!-- ========== 批量导入弹窗 ========== -->
+    <el-dialog title="批量导入" :visible.sync="importDialogVisible" width="600px" class="import-dialog" :close-on-click-modal="false">
+      <el-tabs v-model="importActiveTab" class="import-tabs">
+        <el-tab-pane label="添加导入内容" name="upload">
+          <div class="upload-area" @click="triggerFileUpload">
+            <i class="el-icon-upload"></i>
+            <p>点击或拖拽文件到此处上传</p>
+            <p style="font-size: 12px; color: #c0c4cc;">仅支持 .xlsx, .xls 格式</p>
+          </div>
+          <div style="margin-top: 16px; text-align: center;">
+            <el-button type="text" style="color: #ff6600;" @click="downloadTemplate">
+              <i class="el-icon-download"></i> 下载导入模版
+            </el-button>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="导入记录" name="records">
+          <el-table :data="importRecords" border size="small">
+            <el-table-column prop="fileName" label="导入文件" min-width="150"></el-table-column>
+            <el-table-column prop="importTime" label="导入时间" min-width="160"></el-table-column>
+            <el-table-column prop="importer" label="导入人" width="100"></el-table-column>
+            <el-table-column prop="result" label="导入结果" min-width="150">
+              <template slot-scope="scope">
+                <span v-if="scope.row.result === '成功'" style="color: #67c23a;">{{ scope.row.result }}</span>
+                <span v-else>
+                  <span style="color: #f56c6c;">{{ scope.row.result }}</span>
+                  <el-button type="text" size="mini" style="color: #409eff;" @click="downloadFailData(scope.row)">下载失败数据</el-button>
+                </span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
+
+    <!-- ========== 编辑弹窗 ========== -->
+    <el-dialog :title="'编辑申请 - ' + (editRow ? editRow.applyNo : '')" :visible.sync="editDialogVisible" width="700px" :close-on-click-modal="false" class="edit-form">
+      <el-form :model="editForm" label-width="120px" size="small">
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="SKU">
+              <el-input v-model="editForm.sku" disabled></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="货品编码">
+              <el-input v-model="editForm.productCode" disabled></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="禁售类型">
+              <el-select v-model="editForm.prohibitType" placeholder="请选择" style="width:100%;">
+                <el-option label="SKU&市场" value="SKU&市场"></el-option>
+                <el-option label="SKU&物流区域" value="SKU&物流区域"></el-option>
+                <el-option label="SKU&仓库" value="SKU&仓库"></el-option>
+                <el-option label="SKU&市场&销售平台" value="SKU&市场&销售平台"></el-option>
+                <el-option label="SKU&销售平台" value="SKU&销售平台"></el-option>
+                <el-option label="SKU&仓库&销售平台" value="SKU&仓库&销售平台"></el-option>
+                <el-option label="SKU&站点" value="SKU&站点"></el-option>
+                <el-option label="SKU&销售平台&站点" value="SKU&销售平台&站点"></el-option>
+                <el-option label="仓库&销售平台" value="仓库&销售平台"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="平台">
+              <el-select v-model="editForm.platform" placeholder="请选择" style="width:100%;">
+                <el-option label="Amazon" value="Amazon"></el-option>
+                <el-option label="Tiktok" value="Tiktok"></el-option>
+                <el-option label="Vevor" value="vevor"></el-option>
+                <el-option label="独立站" value="独立站"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="销售模式">
+              <el-select v-model="editForm.salesMode" placeholder="请选择" style="width:100%;">
+                <el-option label="FBM" value="FBM"></el-option>
+                <el-option label="FBA" value="FBA"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="站点">
+              <el-select v-model="editForm.site" placeholder="请选择" style="width:100%;">
+                <el-option label="US" value="US"></el-option>
+                <el-option label="DE" value="DE"></el-option>
+                <el-option label="UK" value="UK"></el-option>
+                <el-option label="NO" value="NO"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="店铺账号">
+              <el-input v-model="editForm.shopAccount" placeholder="请输入"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="市场">
+              <el-select v-model="editForm.market" placeholder="请选择" style="width:100%;">
+                <el-option label="北美" value="北美"></el-option>
+                <el-option label="欧洲" value="欧洲"></el-option>
+                <el-option label="东南亚" value="东南亚"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="物流区域">
+              <el-select v-model="editForm.logisticsArea" placeholder="请选择" style="width:100%;">
+                <el-option label="美东" value="美东"></el-option>
+                <el-option label="美西" value="美西"></el-option>
+                <el-option label="欧洲仓" value="欧洲仓"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="仓库">
+              <el-select v-model="editForm.warehouse" placeholder="请选择" style="width:100%;">
+                <el-option label="美东仓" value="美东仓"></el-option>
+                <el-option label="美西仓" value="美西仓"></el-option>
+                <el-option label="德国仓" value="德国仓"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="预计解禁时间">
+              <el-date-picker v-model="editForm.expectedUnbanTime" type="date" placeholder="请选择" value-format="yyyy-MM-dd" style="width:100%;"></el-date-picker>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="一级禁售原因">
+              <el-select v-model="editForm.primaryReason" placeholder="请选择" style="width:100%;">
+                <el-option label="侵权" value="侵权"></el-option>
+                <el-option label="质量问题" value="质量问题"></el-option>
+                <el-option label="合规问题" value="合规问题"></el-option>
+                <el-option label="利润不达标" value="利润不达标"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="二级禁售原因">
+              <el-select v-model="editForm.secondaryReason" placeholder="请选择" style="width:100%;">
+                <el-option label="专利侵权" value="专利侵权"></el-option>
+                <el-option label="商标侵权" value="商标侵权"></el-option>
+                <el-option label="产品缺陷" value="产品缺陷"></el-option>
+                <el-option label="投诉率过高" value="投诉率过高"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否销售在途追回">
+              <el-select v-model="editForm.isSalesRecovery" placeholder="请选择" style="width:100%;">
+                <el-option label="是" value="yes"></el-option>
+                <el-option label="否" value="no"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="链接下架类型">
+              <el-select v-model="editForm.linkRemovalType" placeholder="请选择" style="width:100%;">
+                <el-option label="无需删除前台listing" value="无需删除前台listing"></el-option>
+                <el-option label="前台删除listing" value="前台删除listing"></el-option>
+                <el-option label="前台listing拉黑（独立站）" value="前台listing拉黑（独立站）"></el-option>
+                <el-option label="平台无法删除链接-改乱页面" value="平台无法删除链接-改乱页面"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="责任人">
+              <el-input v-model="editForm.responsiblePerson" placeholder="请输入"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="原因说明">
+          <el-input type="textarea" v-model="editForm.reasonDesc" placeholder="请输入" :rows="3" maxlength="500" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="解决方案">
+          <el-input type="textarea" v-model="editForm.solution" placeholder="请输入" :rows="3" maxlength="500" show-word-limit></el-input>
+        </el-form-item>
+        <el-form-item label="备注说明">
+          <el-input type="textarea" v-model="editForm.remark" placeholder="请输入" :rows="2" maxlength="500" show-word-limit></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button size="small" @click="editDialogVisible = false">取 消</el-button>
+        <el-button size="small" class="btn-tool" @click="handleEditSave">保 存</el-button>
+        <el-button size="small" class="btn-search" @click="handleEditSubmit">提 交</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- ========== 删除确认弹窗 ========== -->
+    <el-dialog title="提示" :visible.sync="deleteDialogVisible" width="420px" :close-on-click-modal="false">
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <i class="el-icon-warning" style="color: #e6a23c; font-size: 22px; margin-top: 2px;"></i>
+        <div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 8px;">确认删除该申请？</div>
+          <div style="color: #909399; font-size: 13px;">删除后不可恢复。{{ deleteRow && deleteRow.status === 'pending' ? '待审核状态删除后将同步撤销审批流。' : '' }}</div>
+          <div v-if="deleteRow" style="margin-top: 12px; padding: 10px 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px;">
+            <div>申请编号：<strong>{{ deleteRow.applyNo }}</strong></div>
+            <div>SKU：{{ deleteRow.sku }}</div>
+            <div>当前状态：<span class="status-tag" :class="'status-' + deleteRow.status">{{ statusText(deleteRow.status) }}</span></div>
+          </div>
+        </div>
+      </div>
+      <div slot="footer">
+        <el-button size="small" @click="deleteDialogVisible = false">取 消</el-button>
+        <el-button size="small" type="danger" @click="confirmDelete">确认删除</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- ========== 禁售延期弹窗（批量） ========== -->
+    <el-dialog title="禁售延期" :visible.sync="delayDialogVisible" width="500px" :close-on-click-modal="false">
+      <div v-if="selectedApprovedRows.length > 0" class="selected-preview">
+        已选择 <strong>{{ selectedApprovedRows.length }}</strong> 条审核通过的数据进行延期
+      </div>
+      <div v-else-if="singleDelayRow" class="selected-preview">
+        申请编号：<strong>{{ singleDelayRow.applyNo }}</strong>，SKU：{{ singleDelayRow.sku }}
+      </div>
+      <el-form label-width="80px">
+        <el-form-item label="延期至">
+          <el-date-picker
+            v-model="delayDate"
+            type="date"
+            placeholder="请选择延期日期（当前日期往后6个月内）"
+            value-format="yyyy-MM-dd"
+            :picker-options="delayPickerOptions"
+            style="width: 100%;"
+          ></el-date-picker>
+        </el-form-item>
+      </el-form>
+      <div style="color: #909399; font-size: 12px; margin-top: -8px; margin-bottom: 12px;">
+        确认后将发起禁售延期审批流，相同申请人和相同责任人的数据将合并为同一个审批流
+      </div>
+      <div slot="footer">
+        <el-button size="small" @click="delayDialogVisible = false">取 消</el-button>
+        <el-button size="small" class="btn-search" @click="confirmDelay">确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- ========== 解禁确认弹窗 ========== -->
+    <el-dialog title="解禁确认" :visible.sync="unbanDialogVisible" width="500px" :close-on-click-modal="false">
+      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+        <i class="el-icon-warning" style="color: #e6a23c; font-size: 22px; margin-top: 2px;"></i>
+        <div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 8px;">确认解禁选中数据？</div>
+          <div style="color: #909399; font-size: 13px;">确认后将发起解禁审批流，相同申请人和相同责任人的数据将合并为同一个审批流</div>
+        </div>
+      </div>
+      <el-form label-width="100px" size="small" style="margin-bottom: 12px;">
+        <el-form-item label="链接下架类型">
+          <el-select v-model="unbanForm.unlinkType" placeholder="请选择" clearable style="width: 100%;">
+            <el-option label="前台恢复listing" value="restore_listing"></el-option>
+            <el-option label="移除黑名单（独立站）" value="remove_blacklist"></el-option>
+            <el-option label="平台恢复链接-改乱页面" value="restore_link"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div v-if="unbanRows.length > 0" style="max-height: 200px; overflow-y: auto;">
+        <el-table :data="unbanRows" border size="small">
+          <el-table-column prop="applyNo" label="申请编号" width="110"></el-table-column>
+          <el-table-column prop="sku" label="SKU" width="120"></el-table-column>
+          <el-table-column prop="platform" label="平台" width="100"></el-table-column>
+          <el-table-column prop="site" label="站点" width="80"></el-table-column>
+          <el-table-column prop="applicant" label="申请人" width="100"></el-table-column>
+          <el-table-column prop="responsiblePerson" label="责任人" width="100"></el-table-column>
+        </el-table>
+      </div>
+      <div slot="footer">
+        <el-button size="small" @click="unbanDialogVisible = false">取 消</el-button>
+        <el-button size="small" class="btn-search" @click="confirmUnban">确认解禁</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- ========== 禁售范围变更弹窗 ========== -->
+    <el-dialog :title="'禁售范围变更 - ' + (scopeChangeRow ? scopeChangeRow.applyNo : '')" :visible.sync="scopeChangeDialogVisible" width="700px" :close-on-click-modal="false">
+      <div v-if="scopeChangeRow" style="margin-bottom: 16px; padding: 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px;">
+        <el-row :gutter="16">
+          <el-col :span="8"><strong>申请编号：</strong>{{ scopeChangeRow.applyNo }}</el-col>
+          <el-col :span="8"><strong>SKU：</strong>{{ scopeChangeRow.sku }}</el-col>
+          <el-col :span="8"><strong>禁售类型：</strong>{{ scopeChangeRow.prohibitType }}</el-col>
+        </el-row>
+        <el-row :gutter="16" style="margin-top: 8px;">
+          <el-col :span="8"><strong>平台：</strong>{{ scopeChangeRow.platform }}</el-col>
+          <el-col :span="8"><strong>站点：</strong>{{ scopeChangeRow.site }}</el-col>
+          <el-col :span="8"><strong>市场：</strong>{{ scopeChangeRow.market }}</el-col>
+        </el-row>
+      </div>
+      <el-divider content-position="left">变更范围</el-divider>
+      <el-form :model="scopeChangeForm" label-width="120px" size="small">
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="变更平台">
+              <el-select v-model="scopeChangeForm.platform" multiple placeholder="请选择变更平台" style="width:100%;">
+                <el-option label="Amazon" value="Amazon"></el-option>
+                <el-option label="Tiktok" value="Tiktok"></el-option>
+                <el-option label="Vevor" value="vevor"></el-option>
+                <el-option label="独立站" value="独立站"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="变更站点">
+              <el-select v-model="scopeChangeForm.site" multiple placeholder="请选择变更站点" style="width:100%;">
+                <el-option label="US" value="US"></el-option>
+                <el-option label="DE" value="DE"></el-option>
+                <el-option label="UK" value="UK"></el-option>
+                <el-option label="NO" value="NO"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="变更市场">
+              <el-select v-model="scopeChangeForm.market" multiple placeholder="请选择变更市场" style="width:100%;">
+                <el-option label="北美" value="北美"></el-option>
+                <el-option label="欧洲" value="欧洲"></el-option>
+                <el-option label="东南亚" value="东南亚"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="变更仓库">
+              <el-select v-model="scopeChangeForm.warehouse" multiple placeholder="请选择变更仓库" style="width:100%;">
+                <el-option label="美东仓" value="美东仓"></el-option>
+                <el-option label="美西仓" value="美西仓"></el-option>
+                <el-option label="德国仓" value="德国仓"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="变更说明">
+          <el-input type="textarea" v-model="scopeChangeForm.remark" placeholder="请输入变更说明" :rows="3" maxlength="500" show-word-limit></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button size="small" @click="scopeChangeDialogVisible = false">取 消</el-button>
+        <el-button size="small" class="btn-search" @click="confirmScopeChange">提交变更</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- ========== 日志弹窗 ========== -->
+    <el-dialog :title="'操作日志 - 申请编号 ' + (logRow ? logRow.applyNo : '')" :visible.sync="logDialogVisible" width="650px" :close-on-click-modal="false">
+      <div v-if="logRow" style="margin-bottom: 16px; padding: 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px;">
+        <el-row :gutter="16">
+          <el-col :span="8"><strong>SKU：</strong>{{ logRow.sku }}</el-col>
+          <el-col :span="8"><strong>申请人：</strong>{{ logRow.applicant || '-' }}</el-col>
+          <el-col :span="8"><strong>状态：</strong><span class="status-tag" :class="'status-' + logRow.status">{{ statusText(logRow.status) }}</span></el-col>
+        </el-row>
+      </div>
+      <el-timeline class="log-timeline">
+        <el-timeline-item
+          v-for="(log, index) in logData"
+          :key="index"
+          :timestamp="log.time"
+          :color="log.color || '#409eff'"
+          placement="top"
+        >
+          <div style="font-size: 14px; color: #303133;">{{ log.action }}</div>
+          <div style="font-size: 12px; color: #909399; margin-top: 4px;">
+            操作人：{{ log.user }}
+            <span v-if="log.remark"> | {{ log.remark }}</span>
+          </div>
+        </el-timeline-item>
+      </el-timeline>
+    </el-dialog>
+
+    <!-- ========== 批量禁售范围变更弹窗 ========== -->
+    <el-dialog title="批量禁售范围变更" :visible.sync="batchChangeDialogVisible" width="600px" class="import-dialog" :close-on-click-modal="false">
+      <el-tabs v-model="batchChangeActiveTab" class="import-tabs">
+        <el-tab-pane label="添加变更内容" name="upload">
+          <div class="upload-area" @click="triggerBatchChangeUpload">
+            <i class="el-icon-upload"></i>
+            <p>点击或拖拽文件到此处上传</p>
+            <p style="font-size: 12px; color: #c0c4cc;">仅支持 .xlsx, .xls 格式</p>
+          </div>
+          <div style="margin-top: 16px; text-align: center;">
+            <el-button type="text" style="color: #ff6600;" @click="downloadBatchChangeTemplate">
+              <i class="el-icon-download"></i> 下载模版
+            </el-button>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="导入记录" name="records">
+          <el-table :data="batchChangeRecords" border size="small">
+            <el-table-column prop="fileName" label="导入文件" min-width="150"></el-table-column>
+            <el-table-column prop="importTime" label="导入时间" min-width="160"></el-table-column>
+            <el-table-column prop="importer" label="导入人" width="100"></el-table-column>
+            <el-table-column prop="result" label="导入结果" min-width="150">
+              <template slot-scope="scope">
+                <span v-if="scope.row.result === '成功'" style="color: #67c23a;">{{ scope.row.result }}</span>
+                <span v-else>
+                  <span style="color: #f56c6c;">{{ scope.row.result }}</span>
+                  <el-button type="text" size="mini" style="color: #409eff;" @click="downloadFailData(scope.row)">下载失败数据</el-button>
+                </span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+new Vue({
+  el: '#app',
+  data() {
+    return {
+      searchExpanded: false,
+      searchForm: {
+        sku: '', productCode: '', prohibitType: '', market: '',
+        logisticsArea: '', warehouse: '', isProhibited: 'yes',
+        platform: '', salesMode: '', site: '', shopAccount: '',
+        primaryReason: '', secondaryReason: '', status: ''
+      },
+      tableData: [
+        {
+          applyNo: '100001', sku: 'SKU001', productCode: 'PC-001', prohibitType: 'SKU&市场',
+          platform: 'vevor', salesMode: 'FBM', site: 'NO', shopAccount: '全部',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '', primaryReason: '利润不达标', secondaryReason: '负利润',
+          reasonDesc: '订单负利润统计达到阈值', solution: '',
+          applicant: 'OFC', applicantDept: '运营部', responsiblePerson: 'OFC', responsibleDept: '运营部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Amazon' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '前台删除listing', remark: '',
+          attachment: null, status: 'approved',
+          applyTime: '2026-09-09 20:54:18', prohibitStartTime: '2026-09-10 00:00:00', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: 'OFC', time: '2026-09-09 20:54:18', remark: '申请原因：订单负利润', color: '#409eff' },
+            { action: '审批通过', user: '审批人A', time: '2026-09-10 09:00:00', remark: '同意禁售', color: '#67c23a' },
+            { action: '禁售生效', user: '系统', time: '2026-09-10 09:00:01', remark: '自动生效', color: '#e6a23c' }
+          ]
+        },
+        {
+          applyNo: '100002', sku: 'SKU002', productCode: 'PC-002', prohibitType: 'SKU&销售平台&站点',
+          platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
+          reasonDesc: '测试', solution: '',
+          applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '前台删除listing', remark: '',
+          attachment: null, status: 'approved',
+          applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '测试数据', color: '#409eff' },
+            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' },
+            { action: '禁售生效', user: '系统', time: '2026-07-23 09:00:01', remark: '', color: '#e6a23c' }
+          ]
+        },
+        {
+          applyNo: '100003', sku: 'SKU003', productCode: 'PC-003', prohibitType: 'SKU&销售平台&站点',
+          platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
+          reasonDesc: '测试', solution: '',
+          applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '前台删除listing', remark: '',
+          attachment: null, status: 'approved',
+          applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+          ]
+        },
+        {
+          applyNo: '100004', sku: 'SKU004', productCode: 'PC-004', prohibitType: 'SKU&销售平台&站点',
+          platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
+          reasonDesc: '测试', solution: '',
+          applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '前台删除listing', remark: '',
+          attachment: null, status: 'approved',
+          applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+          ]
+        },
+        {
+          applyNo: '100005', sku: 'SKU005', productCode: 'PC-005', prohibitType: 'SKU&销售平台&站点',
+          platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
+          reasonDesc: '测试', solution: '',
+          applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '前台删除listing', remark: '',
+          attachment: null, status: 'approved',
+          applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+          ]
+        },
+        {
+          applyNo: '100006', sku: 'SKU006', productCode: 'PC-006', prohibitType: 'SKU&销售平台&站点',
+          platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
+          reasonDesc: '测试', solution: '',
+          applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '前台删除listing', remark: '',
+          attachment: null, status: 'approved',
+          applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+          ]
+        },
+        {
+          applyNo: '100007', sku: 'SKU007', productCode: 'PC-007', prohibitType: 'SKU&市场&销售平台',
+          platform: 'Amazon', salesMode: 'FBA', site: 'US', shopAccount: 'US-Store-01',
+          market: '北美', logisticsArea: '美东', warehouse: '美东仓',
+          expectedUnbanTime: '2026-12-01', primaryReason: '侵权', secondaryReason: '专利侵权',
+          reasonDesc: '产品涉嫌专利侵权', solution: '更换供应商',
+          applicant: '张三', applicantDept: '运营部', responsiblePerson: '李四', responsibleDept: '产品部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Amazon' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'yes', linkRemovalType: '前台删除listing', remark: '紧急处理',
+          attachment: '侵权证据.pdf', status: 'reviewing',
+          applyTime: '2026-10-20 10:30:00', prohibitStartTime: '', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: '张三', time: '2026-10-20 10:30:00', remark: '产品涉嫌专利侵权', color: '#409eff' },
+            { action: '进入审核', user: '系统', time: '2026-10-20 10:30:01', remark: '已分配审批人：审批人A', color: '#e6a23c' }
+          ]
+        },
+        {
+          applyNo: '100008', sku: 'SKU008', productCode: 'PC-008', prohibitType: 'SKU&市场',
+          platform: 'Amazon', salesMode: 'FBM', site: 'UK', shopAccount: 'UK-Store-02',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '2026-11-15', primaryReason: '质量问题', secondaryReason: '投诉率过高',
+          reasonDesc: '客户投诉率过高', solution: '改进产品质量',
+          applicant: '李四', applicantDept: '产品部', responsiblePerson: '李四', responsibleDept: '产品部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Amazon' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '无需删除前台listing', remark: '',
+          attachment: null, status: 'draft',
+          applyTime: '2026-10-18 14:20:00', prohibitStartTime: '', unbanTime: '',
+          logs: [
+            { action: '创建草稿', user: '李四', time: '2026-10-18 14:20:00', remark: '保存为草稿', color: '#909399' }
+          ]
+        },
+        {
+          applyNo: '100009', sku: 'SKU009', productCode: 'PC-009', prohibitType: 'SKU&仓库&销售平台',
+          platform: '独立站', salesMode: 'FBM', site: 'US', shopAccount: '独立站主店',
+          market: '北美', logisticsArea: '美西', warehouse: '美西仓',
+          expectedUnbanTime: '2027-01-01', primaryReason: '合规问题', secondaryReason: '缺少认证',
+          reasonDesc: '不符合目标市场法规要求', solution: '调整产品规格',
+          applicant: '王五', applicantDept: '合规部', responsiblePerson: '王五', responsibleDept: '合规部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: '独立站' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'yes', linkRemovalType: '前台listing拉黑（独立站）', remark: '需法务确认',
+          attachment: '法规文件.docx', status: 'pending',
+          applyTime: '2026-10-15 09:00:00', prohibitStartTime: '', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: '王五', time: '2026-10-15 09:00:00', remark: '不符合目标市场法规要求', color: '#409eff' },
+            { action: '等待审核', user: '系统', time: '2026-10-15 09:00:01', remark: '已提交至审批流', color: '#e6a23c' }
+          ]
+        },
+        {
+          applyNo: '100010', sku: 'SKU010', productCode: 'PC-010', prohibitType: 'SKU&销售平台&站点',
+          platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
+          market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
+          expectedUnbanTime: '2026-11-30', primaryReason: '利润不达标', secondaryReason: '毛利率过低',
+          reasonDesc: '毛利率低于阈值5%', solution: '优化成本结构',
+          applicant: '赵六', applicantDept: '运营部', responsiblePerson: '赵六', responsibleDept: '运营部',
+          productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
+          planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
+          isSalesRecovery: 'no', linkRemovalType: '平台无法删除链接-改乱页面', remark: '',
+          attachment: null, status: 'rejected',
+          applyTime: '2026-10-10 16:45:00', prohibitStartTime: '', unbanTime: '',
+          logs: [
+            { action: '提交禁售申请', user: '赵六', time: '2026-10-10 16:45:00', remark: '毛利率低于阈值5%', color: '#409eff' },
+            { action: '审批驳回', user: '审批人C', time: '2026-10-12 11:00:00', remark: '原因说明不充分，请补充详细数据', color: '#f56c6c' }
+          ]
+        }
+      ],
+      total: 10,
+      pageSize: 10,
+      selectedRows: [],
+      currentPage: 1,
+
+      // 批量导入
+      importDialogVisible: false,
+      importActiveTab: 'upload',
+      importRecords: [
+        { fileName: '禁售导入_20261020.xlsx', importTime: '2026-10-20 10:30:00', importer: '张三', result: '成功' },
+        { fileName: '禁售导入_20261018.xlsx', importTime: '2026-10-18 14:20:00', importer: '李四', result: '失败' }
+      ],
+
+      // 编辑
+      editDialogVisible: false,
+      editRow: null,
+      editForm: {
+        sku: '', productCode: '', prohibitType: '', platform: '', salesMode: '',
+        site: '', shopAccount: '', market: '', logisticsArea: '', warehouse: '',
+        expectedUnbanTime: '', primaryReason: '', secondaryReason: '',
+        reasonDesc: '', solution: '', isSalesRecovery: '', linkRemovalType: '',
+        responsiblePerson: '', remark: ''
+      },
+
+      // 删除
+      deleteDialogVisible: false,
+      deleteRow: null,
+
+      // 禁售延期
+      delayDialogVisible: false,
+      delayDate: '',
+      singleDelayRow: null,
+      delayPickerOptions: {
+        disabledDate(time) {
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          const sixMonths = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
+          return time.getTime() < now.getTime() || time.getTime() > sixMonths.getTime();
+        }
+      },
+
+      // 解禁
+      unbanDialogVisible: false,
+      unbanRows: [],
+      unbanForm: { unlinkType: '' },
+
+      // 禁售范围变更
+      scopeChangeDialogVisible: false,
+      scopeChangeRow: null,
+      scopeChangeForm: { platform: [], site: [], market: [], warehouse: [], remark: '' },
+
+      // 日志
+      logDialogVisible: false,
+      logData: [],
+      logRow: null,
+
+      // 批量范围变更
+      batchChangeDialogVisible: false,
+      batchChangeActiveTab: 'upload',
+      batchChangeRecords: [
+        { fileName: '范围变更_20261020.xlsx', importTime: '2026-10-20 11:00:00', importer: '张三', result: '成功' }
+      ]
+    };
+  },
+  computed: {
+    selectedApprovedRows() {
+      return this.selectedRows.filter(row => row.status === 'approved');
+    }
+  },
+  methods: {
+    // ========== 通用 ==========
+    statusText(status) {
+      const map = {
+        draft: '草稿', pending: '待审核', reviewing: '审核中',
+        unban_reviewing: '解禁审核中', delay_reviewing: '禁售延期审核中',
+        scope_reviewing: '禁售范围变更审核中', approved: '审核通过', rejected: '驳回'
+      };
+      return map[status] || status;
+    },
+    unlinkTypeText(value) {
+      const map = {
+        restore_listing: '前台恢复listing',
+        remove_blacklist: '移除黑名单（独立站）',
+        restore_link: '平台恢复链接-改乱页面'
+      };
+      return map[value] || value;
+    },
+    handleSearch() {
+      this.$message.success('查询成功');
+    },
+    handleReset() {
+      this.searchForm = {
+        sku: '', productCode: '', prohibitType: '', market: '',
+        logisticsArea: '', warehouse: '', isProhibited: '',
+        platform: '', salesMode: '', site: '', shopAccount: '',
+        primaryReason: '', secondaryReason: '', status: ''
+      };
+      this.$message.info('已重置查询条件');
+    },
+    handleSelectionChange(val) {
+      this.selectedRows = val;
+    },
+    handlePageChange(val) {
+      this.currentPage = val;
+    },
+    handleApply() {
+      window.location.href = 'prohibited-apply.html';
+    },
+    handleExport() {
+      const count = this.selectedRows.length > 0 ? this.selectedRows.length : this.tableData.length;
+      this.$message.success('导出成功，共导出 ' + count + ' 条数据');
+    },
+    downloadAttachment(row) {
+      this.$message.success('附件下载成功：' + row.attachment);
+    },
+
+    // ========== 1. 编辑 ==========
+    handleEdit(row) {
+      this.editRow = row;
+      this.editForm = {
+        sku: row.sku,
+        productCode: row.productCode,
+        prohibitType: row.prohibitType,
+        platform: row.platform,
+        salesMode: row.salesMode,
+        site: row.site,
+        shopAccount: row.shopAccount === '全部' ? '' : row.shopAccount,
+        market: row.market,
+        logisticsArea: row.logisticsArea,
+        warehouse: row.warehouse,
+        expectedUnbanTime: row.expectedUnbanTime,
+        primaryReason: row.primaryReason,
+        secondaryReason: row.secondaryReason,
+        reasonDesc: row.reasonDesc,
+        solution: row.solution,
+        isSalesRecovery: row.isSalesRecovery,
+        linkRemovalType: row.linkRemovalType,
+        responsiblePerson: row.responsiblePerson,
+        remark: row.remark
+      };
+      this.editDialogVisible = true;
+    },
+    handleEditSave() {
+      // 保存为草稿
+      if (!this.editForm.prohibitType) { this.$message.warning('请选择禁售类型'); return; }
+      if (!this.editForm.reasonDesc) { this.$message.warning('请输入原因说明'); return; }
+
+      // 更新表格数据
+      const idx = this.tableData.findIndex(r => r.applyNo === this.editRow.applyNo);
+      if (idx !== -1) {
+        Object.assign(this.tableData[idx], {
+          prohibitType: this.editForm.prohibitType,
+          platform: this.editForm.platform,
+          salesMode: this.editForm.salesMode,
+          site: this.editForm.site,
+          shopAccount: this.editForm.shopAccount || '全部',
+          market: this.editForm.market,
+          logisticsArea: this.editForm.logisticsArea,
+          warehouse: this.editForm.warehouse,
+          expectedUnbanTime: this.editForm.expectedUnbanTime,
+          primaryReason: this.editForm.primaryReason,
+          secondaryReason: this.editForm.secondaryReason,
+          reasonDesc: this.editForm.reasonDesc,
+          solution: this.editForm.solution,
+          isSalesRecovery: this.editForm.isSalesRecovery,
+          linkRemovalType: this.editForm.linkRemovalType,
+          responsiblePerson: this.editForm.responsiblePerson,
+          remark: this.editForm.remark,
+          status: 'draft'
+        });
+        // 添加日志
+        this.tableData[idx].logs.push({
+          action: '编辑并保存草稿',
+          user: '当前用户',
+          time: this.formatNow(),
+          remark: '修改了禁售申请信息',
+          color: '#909399'
+        });
+      }
+      this.$message.success('保存为草稿成功');
+      this.editDialogVisible = false;
+    },
+    handleEditSubmit() {
+      // 提交
+      if (!this.editForm.prohibitType) { this.$message.warning('请选择禁售类型'); return; }
+      if (!this.editForm.reasonDesc) { this.$message.warning('请输入原因说明'); return; }
+
+      const idx = this.tableData.findIndex(r => r.applyNo === this.editRow.applyNo);
+      if (idx !== -1) {
+        Object.assign(this.tableData[idx], {
+          prohibitType: this.editForm.prohibitType,
+          platform: this.editForm.platform,
+          salesMode: this.editForm.salesMode,
+          site: this.editForm.site,
+          shopAccount: this.editForm.shopAccount || '全部',
+          market: this.editForm.market,
+          logisticsArea: this.editForm.logisticsArea,
+          warehouse: this.editForm.warehouse,
+          expectedUnbanTime: this.editForm.expectedUnbanTime,
+          primaryReason: this.editForm.primaryReason,
+          secondaryReason: this.editForm.secondaryReason,
+          reasonDesc: this.editForm.reasonDesc,
+          solution: this.editForm.solution,
+          isSalesRecovery: this.editForm.isSalesRecovery,
+          linkRemovalType: this.editForm.linkRemovalType,
+          responsiblePerson: this.editForm.responsiblePerson,
+          remark: this.editForm.remark,
+          status: 'pending',
+          applyTime: this.formatNow()
+        });
+        this.tableData[idx].logs.push({
+          action: '编辑后重新提交',
+          user: '当前用户',
+          time: this.formatNow(),
+          remark: '修改后提交审批',
+          color: '#409eff'
+        });
+        this.tableData[idx].logs.push({
+          action: '进入审核',
+          user: '系统',
+          time: this.formatNow(),
+          remark: '已提交至审批流',
+          color: '#e6a23c'
+        });
+      }
+      this.$message.success('提交成功，已进入审批流');
+      this.editDialogVisible = false;
+    },
+
+    // ========== 2. 删除 ==========
+    handleDelete(row) {
+      this.deleteRow = row;
+      this.deleteDialogVisible = true;
+    },
+    confirmDelete() {
+      if (!this.deleteRow) return;
+      const idx = this.tableData.findIndex(r => r.applyNo === this.deleteRow.applyNo);
+      if (idx !== -1) {
+        const deletedRow = this.tableData[idx];
+        // 如果是待审核状态，提示同步撤销审批流
+        if (deletedRow.status === 'pending') {
+          this.$message.success('删除成功，已同步撤销审批流');
+        } else {
+          this.$message.success('删除成功');
+        }
+        this.tableData.splice(idx, 1);
+        this.total = this.tableData.length;
+      }
+      this.deleteDialogVisible = false;
+      this.deleteRow = null;
+    },
+
+    // ========== 3. 禁售延期 ==========
+    handleDelay() {
+      // 批量延期
+      if (this.selectedRows.length === 0) {
+        this.$message.warning('请先选择数据');
+        return;
+      }
+      if (this.selectedApprovedRows.length === 0) {
+        this.$message.warning('请选择审核通过的数据');
+        return;
+      }
+      this.singleDelayRow = null;
+      this.delayDate = '';
+      this.delayDialogVisible = true;
+    },
+    handleSingleDelay(row) {
+      // 单条延期
+      this.singleDelayRow = row;
+      this.delayDate = '';
+      this.delayDialogVisible = true;
+    },
+    confirmDelay() {
+      if (!this.delayDate) {
+        this.$message.warning('请选择延期日期');
+        return;
+      }
+      // 确定要延期的数据
+      const targetRows = this.singleDelayRow
+        ? [this.singleDelayRow]
+        : this.selectedApprovedRows;
+
+      targetRows.forEach(row => {
+        const idx = this.tableData.findIndex(r => r.applyNo === row.applyNo);
+        if (idx !== -1) {
+          this.tableData[idx].expectedUnbanTime = this.delayDate;
+          this.tableData[idx].logs.push({
+            action: '发起禁售延期',
+            user: '当前用户',
+            time: this.formatNow(),
+            remark: '延期至 ' + this.delayDate,
+            color: '#e6a23c'
+          });
+        }
+      });
+
+      // 按申请人+责任人分组，模拟合并审批流
+      const groups = {};
+      targetRows.forEach(row => {
+        const key = (row.applicant || '未知') + '_' + (row.responsiblePerson || '未知');
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(row.applyNo);
+      });
+      const groupCount = Object.keys(groups).length;
+      const totalCount = targetRows.length;
+
+      this.$message.success('禁售延期审批流已发起，共 ' + totalCount + ' 条数据，合并为 ' + groupCount + ' 个审批流');
+      this.delayDialogVisible = false;
+      this.singleDelayRow = null;
+      this.delayDate = '';
+    },
+
+    // ========== 4. 解禁 ==========
+    handleUnban() {
+      // 批量解禁
+      if (this.selectedRows.length === 0) {
+        this.$message.warning('请先选择数据');
+        return;
+      }
+      const approved = this.selectedRows.filter(row => row.status === 'approved');
+      if (approved.length === 0) {
+        this.$message.warning('请选择审核通过的数据');
+        return;
+      }
+      this.unbanRows = approved;
+      this.unbanForm = { unlinkType: '' };
+      this.unbanDialogVisible = true;
+    },
+    handleSingleUnban(row) {
+      // 单条解禁
+      this.unbanRows = [row];
+      this.unbanForm = { unlinkType: '' };
+      this.unbanDialogVisible = true;
+    },
+    confirmUnban() {
+      const now = this.formatNow();
+      this.unbanRows.forEach(row => {
+        const idx = this.tableData.findIndex(r => r.applyNo === row.applyNo);
+        if (idx !== -1) {
+          this.tableData[idx].status = 'draft'; // 解禁后回到草稿/已结束状态
+          this.tableData[idx].unbanTime = now;
+          this.tableData[idx].logs.push({
+            action: '发起解禁',
+            user: '当前用户',
+            time: now,
+            remark: '确认解禁' + (this.unbanForm.unlinkType ? '，链接下架类型：' + this.unlinkTypeText(this.unbanForm.unlinkType) : ''),
+            color: '#67c23a'
+          });
+        }
+      });
+
+      const groups = {};
+      this.unbanRows.forEach(row => {
+        const key = (row.applicant || '未知') + '_' + (row.responsiblePerson || '未知');
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(row.applyNo);
+      });
+      const groupCount = Object.keys(groups).length;
+
+      this.$message.success('解禁审批流已发起，共 ' + this.unbanRows.length + ' 条数据，合并为 ' + groupCount + ' 个审批流');
+      this.unbanDialogVisible = false;
+      this.unbanRows = [];
+    },
+
+    // ========== 5. 禁售范围变更 ==========
+    handleScopeChange(row) {
+      window.location.href = 'prohibited-scope-change.html?applyNo=' + row.applyNo;
+    },
+    confirmScopeChange() {
+      if (this.scopeChangeForm.platform.length === 0 && this.scopeChangeForm.site.length === 0 &&
+          this.scopeChangeForm.market.length === 0 && this.scopeChangeForm.warehouse.length === 0) {
+        this.$message.warning('请至少选择一个变更范围');
+        return;
+      }
+      if (!this.scopeChangeForm.remark) {
+        this.$message.warning('请输入变更说明');
+        return;
+      }
+
+      const idx = this.tableData.findIndex(r => r.applyNo === this.scopeChangeRow.applyNo);
+      if (idx !== -1) {
+        const changes = [];
+        if (this.scopeChangeForm.platform.length > 0) changes.push('平台: ' + this.scopeChangeForm.platform.join(','));
+        if (this.scopeChangeForm.site.length > 0) changes.push('站点: ' + this.scopeChangeForm.site.join(','));
+        if (this.scopeChangeForm.market.length > 0) changes.push('市场: ' + this.scopeChangeForm.market.join(','));
+        if (this.scopeChangeForm.warehouse.length > 0) changes.push('仓库: ' + this.scopeChangeForm.warehouse.join(','));
+
+        this.tableData[idx].logs.push({
+          action: '禁售范围变更',
+          user: '当前用户',
+          time: this.formatNow(),
+          remark: '变更内容：' + changes.join('；') + ' | 说明：' + this.scopeChangeForm.remark,
+          color: '#e6a23c'
+        });
+      }
+
+      this.$message.success('禁售范围变更提交成功');
+      this.scopeChangeDialogVisible = false;
+      this.scopeChangeRow = null;
+    },
+
+    // ========== 6. 日志 ==========
+    handleLog(row) {
+      this.logRow = row;
+      this.logData = row.logs || [
+        { action: '提交禁售申请', user: row.applicant || '未知', time: row.applyTime, remark: '', color: '#409eff' }
+      ];
+      this.logDialogVisible = true;
+    },
+
+    // ========== 工具方法 ==========
+    formatNow() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const h = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      return y + '-' + m + '-' + d + ' ' + h + ':' + min + ':' + s;
+    },
+
+    // ========== 批量导入 ==========
+    triggerFileUpload() {
+      this.$message.info('已调起文件选择器，仅支持表格文件');
+    },
+    downloadTemplate() {
+      this.$message.success('模版下载成功');
+    },
+    downloadFailData(row) {
+      this.$message.success('失败数据下载成功：' + row.fileName);
+    },
+    triggerBatchChangeUpload() {
+      this.$message.info('已调起文件选择器，仅支持表格文件');
+    },
+    downloadBatchChangeTemplate() {
+      this.$message.success('模版下载成功');
+    }
+  }
+});
+</script>
+</body>
+</html>
