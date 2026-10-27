@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>禁售申请</title>
+  <title>{{ pageTitle }}</title>
   <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -51,6 +51,20 @@
     .breadcrumb a { color: #409eff; text-decoration: none; }
     .breadcrumb a:hover { color: #ff6600; }
     .breadcrumb span { margin: 0 8px; }
+    /* 编辑模式禁用样式 */
+    .field-disabled .el-input__inner,
+    .field-disabled .el-textarea__inner,
+    .field-disabled .el-select .el-input__inner {
+      background-color: #f5f7fa !important;
+      cursor: not-allowed !important;
+      color: #606266 !important;
+    }
+    .field-disabled .el-input.is-disabled .el-input__inner,
+    .field-disabled .el-textarea.is-disabled .el-textarea__inner,
+    .field-disabled .el-select.is-disabled .el-input__inner {
+      background-color: #f5f7fa !important;
+      color: #606266 !important;
+    }
   </style>
 </head>
 <body>
@@ -66,7 +80,14 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <i class="el-icon-arrow-left back-btn" @click="goBack"></i>
-      <h2>禁售申请</h2>
+      <h2>{{ pageTitle }}</h2>
+    </div>
+
+    <!-- 编辑模式提示 -->
+    <div v-if="isEditMode" style="margin-bottom: 16px; padding: 10px 16px; background: #ecf5ff; border-radius: 4px; font-size: 13px; color: #409eff;">
+      <i class="el-icon-info"></i>
+      编辑模式 - 申请编号：{{ editApplyNo }}
+      <span v-if="isApprovedEdit" style="margin-left: 12px; color: #e6a23c;">（审核通过状态，仅可编辑解决方案、备注说明、附件）</span>
     </div>
 
     <!-- 基本信息 -->
@@ -77,7 +98,7 @@
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="禁售类型" required :class="{ 'form-item-error': errors.prohibitType }">
-              <el-select v-model="form.prohibitType" placeholder="请选择" @change="onProhibitTypeChange">
+              <el-select v-model="form.prohibitType" placeholder="请选择" @change="onProhibitTypeChange" :disabled="isApprovedEdit">
                 <el-option label="SKU&市场" value="sku_market"></el-option>
                 <el-option label="SKU&物流区域" value="sku_logistics"></el-option>
                 <el-option label="SKU&仓库" value="sku_warehouse"></el-option>
@@ -94,7 +115,7 @@
           <el-col :span="12">
             <el-form-item label="SKU" :class="{ 'form-item-error': errors.sku }">
               <el-select v-model="form.skuList" multiple filterable remote placeholder="请选择"
-                :remote-method="searchSku" :loading="skuLoading" @change="onSkuChange">
+                :remote-method="searchSku" :loading="skuLoading" @change="onSkuChange" :disabled="isApprovedEdit">
                 <el-option v-for="item in skuOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
               <div class="error-tip" :class="{ show: errors.sku }">请选择SKU</div>
@@ -105,14 +126,14 @@
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="货品编码">
-              <el-select v-model="form.productCodeList" multiple filterable placeholder="请选择" :disabled="!form.skuList.length">
+              <el-select v-model="form.productCodeList" multiple filterable placeholder="请选择" :disabled="!form.skuList.length || isApprovedEdit">
                 <el-option v-for="item in productCodeOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="平台" :class="{ 'form-item-error': errors.platform }">
-              <el-select v-model="form.platformList" multiple filterable placeholder="请选择" @change="updateNotifyList">
+              <el-select v-model="form.platformList" multiple filterable placeholder="请选择" @change="updateNotifyList" :disabled="isApprovedEdit">
                 <el-option label="Amazon" value="amazon"></el-option>
                 <el-option label="Tiktok" value="tiktok"></el-option>
                 <el-option label="Vevor" value="vevor"></el-option>
@@ -127,7 +148,7 @@
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="销售模式">
-              <el-select v-model="form.salesModeList" multiple filterable placeholder="请选择" @change="updateNotifyList">
+              <el-select v-model="form.salesModeList" multiple filterable placeholder="请选择" @change="updateNotifyList" :disabled="isApprovedEdit">
                 <el-option label="FBM" value="fbm"></el-option>
                 <el-option label="FBA" value="fba"></el-option>
               </el-select>
@@ -135,7 +156,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="站点" :class="{ 'form-item-error': errors.site }">
-              <el-select v-model="form.siteList" multiple filterable placeholder="请选择">
+              <el-select v-model="form.siteList" multiple filterable placeholder="请选择" :disabled="isApprovedEdit">
                 <el-option label="US" value="us"></el-option>
                 <el-option label="DE" value="de"></el-option>
                 <el-option label="UK" value="uk"></el-option>
@@ -150,7 +171,7 @@
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="店铺账号">
-              <el-select v-model="form.shopAccountList" multiple filterable placeholder="请选择">
+              <el-select v-model="form.shopAccountList" multiple filterable placeholder="请选择" :disabled="isApprovedEdit">
                 <el-option label="US-Store-01" value="us_store_01"></el-option>
                 <el-option label="DE-Store-01" value="de_store_01"></el-option>
                 <el-option label="UK-Store-01" value="uk_store_01"></el-option>
@@ -159,7 +180,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="市场" :class="{ 'form-item-error': errors.market }">
-              <el-select v-model="form.marketList" multiple filterable placeholder="请选择" @change="onMarketChange">
+              <el-select v-model="form.marketList" multiple filterable placeholder="请选择" @change="onMarketChange" :disabled="isApprovedEdit">
                 <el-option label="北美" value="na"></el-option>
                 <el-option label="欧洲" value="eu"></el-option>
                 <el-option label="东南亚" value="sea"></el-option>
@@ -172,7 +193,7 @@
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="物流区域" :class="{ 'form-item-error': errors.logisticsArea }">
-              <el-select v-model="form.logisticsAreaList" multiple filterable placeholder="请选择">
+              <el-select v-model="form.logisticsAreaList" multiple filterable placeholder="请选择" :disabled="isApprovedEdit">
                 <el-option label="美东" value="us_east"></el-option>
                 <el-option label="美西" value="us_west"></el-option>
                 <el-option label="欧洲仓" value="eu_warehouse"></el-option>
@@ -182,7 +203,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="仓库" :class="{ 'form-item-error': errors.warehouse }">
-              <el-select v-model="form.warehouseList" multiple filterable placeholder="请选择">
+              <el-select v-model="form.warehouseList" multiple filterable placeholder="请选择" :disabled="isApprovedEdit">
                 <el-option label="美东仓" value="us_east_wh"></el-option>
                 <el-option label="美西仓" value="us_west_wh"></el-option>
                 <el-option label="德国仓" value="de_wh"></el-option>
@@ -201,6 +222,7 @@
                 placeholder="请选择预计解禁时间"
                 value-format="yyyy-MM-dd"
                 style="width: 100%;"
+                :disabled="isApprovedEdit"
               ></el-date-picker>
               <div class="error-tip" :class="{ show: errors.expectedUnbanTime }">请选择预计解禁时间</div>
             </el-form-item>
@@ -217,7 +239,7 @@
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="一级禁售原因" required :class="{ 'form-item-error': errors.primaryReason }">
-              <el-select v-model="form.primaryReason" placeholder="请选择" @change="onPrimaryReasonChange">
+              <el-select v-model="form.primaryReason" placeholder="请选择" @change="onPrimaryReasonChange" :disabled="isApprovedEdit">
                 <el-option label="侵权" value="infringement"></el-option>
                 <el-option label="质量问题" value="quality"></el-option>
                 <el-option label="合规问题" value="compliance"></el-option>
@@ -229,7 +251,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="二级禁售原因" required :class="{ 'form-item-error': errors.secondaryReason }">
-              <el-select v-model="form.secondaryReason" placeholder="请选择" :disabled="!form.primaryReason">
+              <el-select v-model="form.secondaryReason" placeholder="请选择" :disabled="!form.primaryReason || isApprovedEdit">
                 <el-option v-for="item in secondaryReasonOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
               <div class="error-tip" :class="{ show: errors.secondaryReason }">请选择二级禁售原因</div>
@@ -240,7 +262,7 @@
         <el-row :gutter="24">
           <el-col :span="24">
             <el-form-item label="原因说明" required :class="{ 'form-item-error': errors.reasonDesc }">
-              <el-input type="textarea" v-model="form.reasonDesc" placeholder="请输入" :rows="4" maxlength="500" show-word-limit></el-input>
+              <el-input type="textarea" v-model="form.reasonDesc" placeholder="请输入" :rows="4" maxlength="500" show-word-limit :disabled="isApprovedEdit"></el-input>
               <div class="error-tip" :class="{ show: errors.reasonDesc }">请输入原因说明</div>
             </el-form-item>
           </el-col>
@@ -265,7 +287,7 @@
           <el-col :span="12">
             <el-form-item label="责任人">
               <el-select v-model="form.responsiblePerson" filterable remote placeholder="请选择"
-                :remote-method="searchUser" :loading="userLoading" @change="onResponsiblePersonChange">
+                :remote-method="searchUser" :loading="userLoading" @change="onResponsiblePersonChange" :disabled="isApprovedEdit">
                 <el-option v-for="item in userOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </el-form-item>
@@ -310,7 +332,7 @@
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="是否销售在途追回">
-              <el-select v-model="form.isSalesRecovery" placeholder="请选择">
+              <el-select v-model="form.isSalesRecovery" placeholder="请选择" :disabled="isApprovedEdit">
                 <el-option label="是" value="yes"></el-option>
                 <el-option label="否" value="no"></el-option>
               </el-select>
@@ -318,7 +340,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="链接下架类型">
-              <el-select v-model="form.linkRemovalType" placeholder="请选择">
+              <el-select v-model="form.linkRemovalType" placeholder="请选择" :disabled="isApprovedEdit">
                 <el-option label="无需删除前台listing" value="no_removal"></el-option>
                 <el-option label="前台删除listing" value="remove_listing"></el-option>
                 <el-option label="前台listing拉黑（独立站）" value="blacklist"></el-option>
@@ -421,12 +443,106 @@ new Vue({
       secondaryReasonOptions: [],
       notifyList: [],
       opsNotifyList: [],
-      uploadedFiles: []
+      uploadedFiles: [],
+      // 编辑模式
+      isEditMode: false,
+      editApplyNo: '',
+      editStatus: '',
+      pageTitle: '禁售申请'
     };
+  },
+  computed: {
+    isApprovedEdit() {
+      return this.isEditMode && this.editStatus === 'approved';
+    }
+  },
+  mounted() {
+    this.initEditMode();
   },
   methods: {
     goBack() {
       window.location.href = 'prohibited-management.html';
+    },
+    initEditMode() {
+      const params = new URLSearchParams(window.location.search);
+      const applyNo = params.get('applyNo');
+      const status = params.get('status');
+      if (!applyNo) return;
+
+      this.isEditMode = true;
+      this.editApplyNo = applyNo;
+      this.editStatus = status || '';
+      this.pageTitle = '编辑禁售申请';
+
+      // 模拟从后端加载数据（实际应通过API获取）
+      const mockData = {
+        '100001': {
+          prohibitType: 'sku_market', skuList: ['SKU001'], productCodeList: ['PC-001'],
+          platformList: ['vevor'], salesModeList: ['fbm'], siteList: ['no'],
+          shopAccountList: [], marketList: ['eu'], logisticsAreaList: ['eu_warehouse'],
+          warehouseList: ['de_wh'], expectedUnbanTime: '',
+          primaryReason: 'profit', secondaryReason: 'negative_profit',
+          reasonDesc: '订单负利润统计达到阈值', solution: '',
+          responsiblePerson: '', responsibleDept: '运营部',
+          isSalesRecovery: 'no', linkRemovalType: 'remove_listing', remark: '',
+          attachment: null
+        },
+        '100002': {
+          prohibitType: 'sku_platform_site', skuList: ['SKU002'], productCodeList: ['PC-002'],
+          platformList: ['tiktok'], salesModeList: ['fbm'], siteList: ['de'],
+          shopAccountList: [], marketList: ['eu'], logisticsAreaList: ['eu_warehouse'],
+          warehouseList: ['de_wh'], expectedUnbanTime: '',
+          primaryReason: 'compliance', secondaryReason: 'regulation',
+          reasonDesc: '测试', solution: '',
+          responsiblePerson: '', responsibleDept: '运营部',
+          isSalesRecovery: 'no', linkRemovalType: 'remove_listing', remark: '',
+          attachment: null
+        },
+        '100007': {
+          prohibitType: 'sku_market_platform', skuList: ['SKU007'], productCodeList: ['PC-007'],
+          platformList: ['amazon'], salesModeList: ['fba'], siteList: ['us'],
+          shopAccountList: ['us_store_01'], marketList: ['na'], logisticsAreaList: ['us_east'],
+          warehouseList: ['us_east_wh'], expectedUnbanTime: '2026-12-01',
+          primaryReason: 'infringement', secondaryReason: 'patent',
+          reasonDesc: '产品涉嫌专利侵权', solution: '更换供应商',
+          responsiblePerson: 'lisi', responsibleDept: '产品部',
+          isSalesRecovery: 'yes', linkRemovalType: 'remove_listing', remark: '紧急处理',
+          attachment: '侵权证据.pdf'
+        },
+        '100008': {
+          prohibitType: 'sku_market', skuList: ['SKU008'], productCodeList: ['PC-008'],
+          platformList: ['amazon'], salesModeList: ['fbm'], siteList: ['uk'],
+          shopAccountList: ['uk_store_01'], marketList: ['eu'], logisticsAreaList: ['eu_warehouse'],
+          warehouseList: ['de_wh'], expectedUnbanTime: '2026-11-15',
+          primaryReason: 'quality', secondaryReason: 'complaint',
+          reasonDesc: '客户投诉率过高', solution: '改进产品质量',
+          responsiblePerson: 'lisi', responsibleDept: '产品部',
+          isSalesRecovery: 'no', linkRemovalType: 'no_removal', remark: '',
+          attachment: null
+        },
+        '100010': {
+          prohibitType: 'sku_platform_site', skuList: ['SKU010'], productCodeList: ['PC-010'],
+          platformList: ['tiktok'], salesModeList: ['fbm'], siteList: ['de'],
+          shopAccountList: [], marketList: ['eu'], logisticsAreaList: ['eu_warehouse'],
+          warehouseList: ['de_wh'], expectedUnbanTime: '2026-11-30',
+          primaryReason: 'profit', secondaryReason: 'low_margin',
+          reasonDesc: '毛利率低于阈值5%', solution: '优化成本结构',
+          responsiblePerson: 'zhaoliu', responsibleDept: '运营部',
+          isSalesRecovery: 'no', linkRemovalType: 'messy_page', remark: '',
+          attachment: null
+        }
+      };
+
+      const data = mockData[applyNo];
+      if (data) {
+        Object.assign(this.form, data);
+        if (data.attachment) {
+          this.uploadedFiles = [{ name: data.attachment }];
+        }
+        // 触发二级原因和告知人列表更新
+        this.onPrimaryReasonChange(data.primaryReason);
+        this.updateNotifyList();
+      }
     },
     searchSku(query) {
       this.skuLoading = true;
@@ -620,6 +736,11 @@ new Vue({
       return valid;
     },
     handleSave() {
+      if (this.isApprovedEdit) {
+        // 审核通过状态编辑，只校验解决方案、备注、附件
+        this.$message.success('保存成功（审核通过状态编辑）');
+        return;
+      }
       if (this.validateForm()) {
         this.$message.success('保存为草稿成功');
       } else {
@@ -627,6 +748,14 @@ new Vue({
       }
     },
     handleSubmit() {
+      if (this.isApprovedEdit) {
+        // 审核通过状态编辑，只校验解决方案、备注、附件
+        this.$message.success('提交成功');
+        setTimeout(() => {
+          window.location.href = 'prohibited-management.html';
+        }, 1500);
+        return;
+      }
       if (this.validateForm()) {
         this.$message.success('提交成功，已进入审批流');
         setTimeout(() => {

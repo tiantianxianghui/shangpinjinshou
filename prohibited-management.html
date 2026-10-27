@@ -351,8 +351,8 @@
         <el-table-column label="操作" width="280" fixed="right">
           <template slot-scope="scope">
             <div class="action-btns">
-              <el-button v-if="scope.row.status === 'draft' || scope.row.status === 'rejected'" type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-button v-if="scope.row.status === 'draft' || scope.row.status === 'pending'" type="text" size="small" @click="handleDelete(scope.row)">删除</el-button>
+              <el-button v-if="scope.row.status === 'draft' || scope.row.status === 'rejected' || scope.row.status === 'approved'" type="text" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+              <el-button v-if="scope.row.status === 'draft' || scope.row.status === 'pending' || scope.row.status === 'rejected'" type="text" size="small" @click="handleDelete(scope.row)">删除</el-button>
               <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleSingleDelay(scope.row)">禁售延期</el-button>
               <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleSingleUnban(scope.row)">解禁</el-button>
               <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleScopeChange(scope.row)">禁售范围变更</el-button>
@@ -730,7 +730,7 @@
     </el-dialog>
 
     <!-- ========== 日志弹窗 ========== -->
-    <el-dialog :title="'操作日志 - 申请编号 ' + (logRow ? logRow.applyNo : '')" :visible.sync="logDialogVisible" width="650px" :close-on-click-modal="false">
+    <el-dialog :title="'操作日志 - 申请编号 ' + (logRow ? logRow.applyNo : '')" :visible.sync="logDialogVisible" width="750px" :close-on-click-modal="false">
       <div v-if="logRow" style="margin-bottom: 16px; padding: 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px;">
         <el-row :gutter="16">
           <el-col :span="8"><strong>SKU：</strong>{{ logRow.sku }}</el-col>
@@ -738,21 +738,16 @@
           <el-col :span="8"><strong>状态：</strong><span class="status-tag" :class="'status-' + logRow.status">{{ statusText(logRow.status) }}</span></el-col>
         </el-row>
       </div>
-      <el-timeline class="log-timeline">
-        <el-timeline-item
-          v-for="(log, index) in logData"
-          :key="index"
-          :timestamp="log.time"
-          :color="log.color || '#409eff'"
-          placement="top"
-        >
-          <div style="font-size: 14px; color: #303133;">{{ log.action }}</div>
-          <div style="font-size: 12px; color: #909399; margin-top: 4px;">
-            操作人：{{ log.user }}
-            <span v-if="log.remark"> | {{ log.remark }}</span>
-          </div>
-        </el-timeline-item>
-      </el-timeline>
+      <el-table :data="logData" border style="width: 100%">
+        <el-table-column prop="time" label="操作时间" width="180"></el-table-column>
+        <el-table-column prop="user" label="操作人" width="120"></el-table-column>
+        <el-table-column label="操作内容" min-width="200">
+          <template slot-scope="scope">
+            <div>{{ scope.row.action }}</div>
+            <div v-if="scope.row.remark" style="color: #909399; font-size: 12px; margin-top: 4px;">{{ scope.row.remark }}</div>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-dialog>
 
     <!-- ========== 批量禁售范围变更弹窗 ========== -->
@@ -819,9 +814,8 @@ new Vue({
           attachment: null, status: 'approved',
           applyTime: '2026-09-09 20:54:18', prohibitStartTime: '2026-09-10 00:00:00', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: 'OFC', time: '2026-09-09 20:54:18', remark: '申请原因：订单负利润', color: '#409eff' },
-            { action: '审批通过', user: '审批人A', time: '2026-09-10 09:00:00', remark: '同意禁售', color: '#67c23a' },
-            { action: '禁售生效', user: '系统', time: '2026-09-10 09:00:01', remark: '自动生效', color: '#e6a23c' }
+            { action: '申请禁售', user: 'OFC', time: '2026-09-09 20:54:18', remark: '申请原因：订单负利润', color: '#409eff' },
+            { action: '禁售审批通过', user: '审批人A', time: '2026-09-10 09:00:00', remark: '同意禁售', color: '#67c23a' }
           ]
         },
         {
@@ -837,9 +831,8 @@ new Vue({
           attachment: null, status: 'approved',
           applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '测试数据', color: '#409eff' },
-            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' },
-            { action: '禁售生效', user: '系统', time: '2026-07-23 09:00:01', remark: '', color: '#e6a23c' }
+            { action: '申请禁售', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '测试数据', color: '#409eff' },
+            { action: '禁售审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
           ]
         },
         {
@@ -855,8 +848,8 @@ new Vue({
           attachment: null, status: 'approved',
           applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
-            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+            { action: '申请禁售', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '禁售审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
           ]
         },
         {
@@ -872,8 +865,8 @@ new Vue({
           attachment: null, status: 'approved',
           applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
-            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+            { action: '申请禁售', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '禁售审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
           ]
         },
         {
@@ -889,8 +882,8 @@ new Vue({
           attachment: null, status: 'approved',
           applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
-            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+            { action: '申请禁售', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '禁售审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
           ]
         },
         {
@@ -906,8 +899,8 @@ new Vue({
           attachment: null, status: 'approved',
           applyTime: '2026-07-22 17:44:09', prohibitStartTime: '2026-07-23 00:00:00', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
-            { action: '审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
+            { action: '申请禁售', user: 'xiongyangfe', time: '2026-07-22 17:44:09', remark: '', color: '#409eff' },
+            { action: '禁售审批通过', user: '审批人B', time: '2026-07-23 09:00:00', remark: '', color: '#67c23a' }
           ]
         },
         {
@@ -923,8 +916,7 @@ new Vue({
           attachment: '侵权证据.pdf', status: 'reviewing',
           applyTime: '2026-10-20 10:30:00', prohibitStartTime: '', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: '张三', time: '2026-10-20 10:30:00', remark: '产品涉嫌专利侵权', color: '#409eff' },
-            { action: '进入审核', user: '系统', time: '2026-10-20 10:30:01', remark: '已分配审批人：审批人A', color: '#e6a23c' }
+            { action: '申请禁售', user: '张三', time: '2026-10-20 10:30:00', remark: '产品涉嫌专利侵权', color: '#409eff' }
           ]
         },
         {
@@ -940,7 +932,7 @@ new Vue({
           attachment: null, status: 'draft',
           applyTime: '2026-10-18 14:20:00', prohibitStartTime: '', unbanTime: '',
           logs: [
-            { action: '创建草稿', user: '李四', time: '2026-10-18 14:20:00', remark: '保存为草稿', color: '#909399' }
+            { action: '申请禁售', user: '李四', time: '2026-10-18 14:20:00', remark: '保存为草稿', color: '#909399' }
           ]
         },
         {
@@ -956,8 +948,7 @@ new Vue({
           attachment: '法规文件.docx', status: 'pending',
           applyTime: '2026-10-15 09:00:00', prohibitStartTime: '', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: '王五', time: '2026-10-15 09:00:00', remark: '不符合目标市场法规要求', color: '#409eff' },
-            { action: '等待审核', user: '系统', time: '2026-10-15 09:00:01', remark: '已提交至审批流', color: '#e6a23c' }
+            { action: '申请禁售', user: '王五', time: '2026-10-15 09:00:00', remark: '不符合目标市场法规要求', color: '#409eff' }
           ]
         },
         {
@@ -973,8 +964,8 @@ new Vue({
           attachment: null, status: 'rejected',
           applyTime: '2026-10-10 16:45:00', prohibitStartTime: '', unbanTime: '',
           logs: [
-            { action: '提交禁售申请', user: '赵六', time: '2026-10-10 16:45:00', remark: '毛利率低于阈值5%', color: '#409eff' },
-            { action: '审批驳回', user: '审批人C', time: '2026-10-12 11:00:00', remark: '原因说明不充分，请补充详细数据', color: '#f56c6c' }
+            { action: '申请禁售', user: '赵六', time: '2026-10-10 16:45:00', remark: '毛利率低于阈值5%', color: '#409eff' },
+            { action: '禁售审批拒绝', user: '审批人C', time: '2026-10-12 11:00:00', remark: '原因说明不充分，请补充详细数据', color: '#f56c6c' }
           ]
         }
       ],
@@ -1096,115 +1087,7 @@ new Vue({
 
     // ========== 1. 编辑 ==========
     handleEdit(row) {
-      this.editRow = row;
-      this.editForm = {
-        sku: row.sku,
-        productCode: row.productCode,
-        prohibitType: row.prohibitType,
-        platform: row.platform,
-        salesMode: row.salesMode,
-        site: row.site,
-        shopAccount: row.shopAccount === '全部' ? '' : row.shopAccount,
-        market: row.market,
-        logisticsArea: row.logisticsArea,
-        warehouse: row.warehouse,
-        expectedUnbanTime: row.expectedUnbanTime,
-        primaryReason: row.primaryReason,
-        secondaryReason: row.secondaryReason,
-        reasonDesc: row.reasonDesc,
-        solution: row.solution,
-        isSalesRecovery: row.isSalesRecovery,
-        linkRemovalType: row.linkRemovalType,
-        responsiblePerson: row.responsiblePerson,
-        remark: row.remark
-      };
-      this.editDialogVisible = true;
-    },
-    handleEditSave() {
-      // 保存为草稿
-      if (!this.editForm.prohibitType) { this.$message.warning('请选择禁售类型'); return; }
-      if (!this.editForm.reasonDesc) { this.$message.warning('请输入原因说明'); return; }
-
-      // 更新表格数据
-      const idx = this.tableData.findIndex(r => r.applyNo === this.editRow.applyNo);
-      if (idx !== -1) {
-        Object.assign(this.tableData[idx], {
-          prohibitType: this.editForm.prohibitType,
-          platform: this.editForm.platform,
-          salesMode: this.editForm.salesMode,
-          site: this.editForm.site,
-          shopAccount: this.editForm.shopAccount || '全部',
-          market: this.editForm.market,
-          logisticsArea: this.editForm.logisticsArea,
-          warehouse: this.editForm.warehouse,
-          expectedUnbanTime: this.editForm.expectedUnbanTime,
-          primaryReason: this.editForm.primaryReason,
-          secondaryReason: this.editForm.secondaryReason,
-          reasonDesc: this.editForm.reasonDesc,
-          solution: this.editForm.solution,
-          isSalesRecovery: this.editForm.isSalesRecovery,
-          linkRemovalType: this.editForm.linkRemovalType,
-          responsiblePerson: this.editForm.responsiblePerson,
-          remark: this.editForm.remark,
-          status: 'draft'
-        });
-        // 添加日志
-        this.tableData[idx].logs.push({
-          action: '编辑并保存草稿',
-          user: '当前用户',
-          time: this.formatNow(),
-          remark: '修改了禁售申请信息',
-          color: '#909399'
-        });
-      }
-      this.$message.success('保存为草稿成功');
-      this.editDialogVisible = false;
-    },
-    handleEditSubmit() {
-      // 提交
-      if (!this.editForm.prohibitType) { this.$message.warning('请选择禁售类型'); return; }
-      if (!this.editForm.reasonDesc) { this.$message.warning('请输入原因说明'); return; }
-
-      const idx = this.tableData.findIndex(r => r.applyNo === this.editRow.applyNo);
-      if (idx !== -1) {
-        Object.assign(this.tableData[idx], {
-          prohibitType: this.editForm.prohibitType,
-          platform: this.editForm.platform,
-          salesMode: this.editForm.salesMode,
-          site: this.editForm.site,
-          shopAccount: this.editForm.shopAccount || '全部',
-          market: this.editForm.market,
-          logisticsArea: this.editForm.logisticsArea,
-          warehouse: this.editForm.warehouse,
-          expectedUnbanTime: this.editForm.expectedUnbanTime,
-          primaryReason: this.editForm.primaryReason,
-          secondaryReason: this.editForm.secondaryReason,
-          reasonDesc: this.editForm.reasonDesc,
-          solution: this.editForm.solution,
-          isSalesRecovery: this.editForm.isSalesRecovery,
-          linkRemovalType: this.editForm.linkRemovalType,
-          responsiblePerson: this.editForm.responsiblePerson,
-          remark: this.editForm.remark,
-          status: 'pending',
-          applyTime: this.formatNow()
-        });
-        this.tableData[idx].logs.push({
-          action: '编辑后重新提交',
-          user: '当前用户',
-          time: this.formatNow(),
-          remark: '修改后提交审批',
-          color: '#409eff'
-        });
-        this.tableData[idx].logs.push({
-          action: '进入审核',
-          user: '系统',
-          time: this.formatNow(),
-          remark: '已提交至审批流',
-          color: '#e6a23c'
-        });
-      }
-      this.$message.success('提交成功，已进入审批流');
-      this.editDialogVisible = false;
+      window.location.href = 'prohibited-apply.html?applyNo=' + row.applyNo + '&status=' + row.status;
     },
 
     // ========== 2. 删除 ==========
