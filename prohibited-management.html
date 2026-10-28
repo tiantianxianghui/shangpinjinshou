@@ -94,9 +94,9 @@
     /* 告知人列样式 */
     .notifier-cell { line-height: 1.8; font-size: 13px; }
     .notifier-row { display: flex; align-items: flex-start; }
-    .notifier-role { color: #909399; flex-shrink: 0; min-width: 72px; }
+    .notifier-role { color: #909399; flex-shrink: 0; min-width: 36px; }
     .notifier-name { color: #303133; }
-    .notifier-platform { color: #409eff; font-size: 12px; }
+    .notifier-ellipsis { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   </style>
 </head>
 <body>
@@ -209,9 +209,11 @@
           <label>申请单状态</label>
           <el-select v-model="searchForm.status" placeholder="请选择" size="small" clearable>
             <el-option label="草稿" value="draft"></el-option>
-            <el-option label="待审核" value="pending"></el-option>
-            <el-option label="审核中" value="reviewing"></el-option>
+            <el-option label="禁售待审核" value="pending"></el-option>
+            <el-option label="禁售审核中" value="reviewing"></el-option>
+            <el-option label="解禁待审核" value="unban_pending"></el-option>
             <el-option label="解禁审核中" value="unban_reviewing"></el-option>
+            <el-option label="禁售延期待审核" value="delay_pending"></el-option>
             <el-option label="禁售延期审核中" value="delay_reviewing"></el-option>
             <el-option label="审核通过" value="approved"></el-option>
             <el-option label="驳回" value="rejected"></el-option>
@@ -289,37 +291,50 @@
         <el-table-column label="告知人" min-width="280">
           <template slot-scope="scope">
             <div class="notifier-cell">
-              <div class="notifier-row" v-if="scope.row.productNotifier">
-                <span class="notifier-role">产品告知人：</span>
-                <span class="notifier-name">{{ scope.row.productNotifier }}</span>
-              </div>
-              <div class="notifier-row" v-if="scope.row.opsNotifierList && scope.row.opsNotifierList.length">
-                <span class="notifier-role">运营告知人：</span>
-                <span class="notifier-name" v-for="(op, idx) in scope.row.opsNotifierList" :key="idx">
-                  {{ op.name }}<span class="notifier-platform" v-if="op.platform">（{{ op.platform }}）</span>
-                  <span v-if="idx < scope.row.opsNotifierList.length - 1">、</span>
-                </span>
-              </div>
-              <div class="notifier-row" v-else-if="scope.row.opsNotifier">
-                <span class="notifier-role">运营告知人：</span>
-                <span class="notifier-name">{{ scope.row.opsNotifier }}</span>
-              </div>
-              <div class="notifier-row" v-if="scope.row.planNotifier">
-                <span class="notifier-role">计划告知人：</span>
-                <span class="notifier-name">{{ scope.row.planNotifier }}</span>
-              </div>
-              <div class="notifier-row" v-if="scope.row.purchaseNotifier">
-                <span class="notifier-role">采购告知人：</span>
-                <span class="notifier-name">{{ scope.row.purchaseNotifier }}</span>
-              </div>
-              <div class="notifier-row" v-if="scope.row.logisticsNotifier">
-                <span class="notifier-role">物流告知人：</span>
-                <span class="notifier-name">{{ scope.row.logisticsNotifier }}</span>
-              </div>
-              <div class="notifier-row" v-if="scope.row.serviceNotifier">
-                <span class="notifier-role">客服告知人：</span>
-                <span class="notifier-name">{{ scope.row.serviceNotifier }}</span>
-              </div>
+              <el-tooltip placement="top" :disabled="!scope.row.productNotifier" :content="'产品告知人：' + scope.row.productNotifier">
+                <div class="notifier-row" v-if="scope.row.productNotifier">
+                  <span class="notifier-role">产品：</span>
+                  <span class="notifier-name notifier-ellipsis">{{ scope.row.productNotifier }}</span>
+                </div>
+              </el-tooltip>
+              <el-tooltip placement="top" :disabled="!scope.row.opsNotifierList || scope.row.opsNotifierList.length <= 1" :content="(scope.row.opsNotifierList || []).map(o => o.name + (o.platform ? '（' + o.platform + '）' : '')).join('、')">
+                <div class="notifier-row" v-if="scope.row.opsNotifierList && scope.row.opsNotifierList.length">
+                  <span class="notifier-role">运营：</span>
+                  <span class="notifier-name notifier-ellipsis">
+                    <span v-for="(op, idx) in scope.row.opsNotifierList" :key="idx">{{ op.name }}<span v-if="op.platform">（{{ op.platform }}）</span><span v-if="idx < scope.row.opsNotifierList.length - 1">、</span></span>
+                  </span>
+                </div>
+              </el-tooltip>
+              <el-tooltip placement="top" :disabled="!scope.row.opsNotifier" :content="'运营告知人：' + scope.row.opsNotifier">
+                <div class="notifier-row" v-else-if="scope.row.opsNotifier">
+                  <span class="notifier-role">运营：</span>
+                  <span class="notifier-name notifier-ellipsis">{{ scope.row.opsNotifier }}</span>
+                </div>
+              </el-tooltip>
+              <el-tooltip placement="top" :disabled="!scope.row.planNotifier" :content="'计划告知人：' + scope.row.planNotifier">
+                <div class="notifier-row" v-if="scope.row.planNotifier">
+                  <span class="notifier-role">计划：</span>
+                  <span class="notifier-name notifier-ellipsis">{{ scope.row.planNotifier }}</span>
+                </div>
+              </el-tooltip>
+              <el-tooltip placement="top" :disabled="!scope.row.purchaseNotifier" :content="'采购告知人：' + scope.row.purchaseNotifier">
+                <div class="notifier-row" v-if="scope.row.purchaseNotifier">
+                  <span class="notifier-role">采购：</span>
+                  <span class="notifier-name notifier-ellipsis">{{ scope.row.purchaseNotifier }}</span>
+                </div>
+              </el-tooltip>
+              <el-tooltip placement="top" :disabled="!scope.row.logisticsNotifier" :content="'物流告知人：' + scope.row.logisticsNotifier">
+                <div class="notifier-row" v-if="scope.row.logisticsNotifier">
+                  <span class="notifier-role">物流：</span>
+                  <span class="notifier-name notifier-ellipsis">{{ scope.row.logisticsNotifier }}</span>
+                </div>
+              </el-tooltip>
+              <el-tooltip placement="top" :disabled="!scope.row.serviceNotifier" :content="'客服告知人：' + scope.row.serviceNotifier">
+                <div class="notifier-row" v-if="scope.row.serviceNotifier">
+                  <span class="notifier-role">客服：</span>
+                  <span class="notifier-name notifier-ellipsis">{{ scope.row.serviceNotifier }}</span>
+                </div>
+              </el-tooltip>
             </div>
           </template>
         </el-table-column>
@@ -616,9 +631,6 @@
           ></el-date-picker>
         </el-form-item>
       </el-form>
-      <div style="color: #909399; font-size: 12px; margin-top: -8px; margin-bottom: 12px;">
-        确认后将发起禁售延期审批流，相同申请人和相同责任人的数据将合并为同一个审批流
-      </div>
       <div slot="footer">
         <el-button size="small" @click="delayDialogVisible = false">取 消</el-button>
         <el-button size="small" class="btn-search" @click="confirmDelay">确 定</el-button>
@@ -631,7 +643,6 @@
         <i class="el-icon-warning" style="color: #e6a23c; font-size: 22px; margin-top: 2px;"></i>
         <div>
           <div style="font-size: 15px; font-weight: 500; margin-bottom: 8px;">确认解禁选中数据？</div>
-          <div style="color: #909399; font-size: 13px;">确认后将发起解禁审批流，相同申请人和相同责任人的数据将合并为同一个审批流</div>
         </div>
       </div>
       <el-form label-width="100px" size="small" style="margin-bottom: 12px;">
@@ -1040,9 +1051,10 @@ new Vue({
     // ========== 通用 ==========
     statusText(status) {
       const map = {
-        draft: '草稿', pending: '待审核', reviewing: '审核中',
-        unban_reviewing: '解禁审核中', delay_reviewing: '禁售延期审核中',
-        scope_reviewing: '禁售范围变更审核中', approved: '审核通过', rejected: '驳回'
+        draft: '草稿', pending: '禁售待审核', reviewing: '禁售审核中',
+        unban_pending: '解禁待审核', unban_reviewing: '解禁审核中',
+        delay_pending: '禁售延期待审核', delay_reviewing: '禁售延期审核中',
+        approved: '审核通过', rejected: '驳回'
       };
       return map[status] || status;
     },
