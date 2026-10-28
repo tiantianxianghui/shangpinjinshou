@@ -211,11 +211,13 @@
             <el-option label="草稿" value="draft"></el-option>
             <el-option label="禁售待审核" value="pending"></el-option>
             <el-option label="禁售审核中" value="reviewing"></el-option>
+            <el-option label="禁售审核通过" value="approved"></el-option>
             <el-option label="解禁待审核" value="unban_pending"></el-option>
             <el-option label="解禁审核中" value="unban_reviewing"></el-option>
+            <el-option label="解禁审核通过" value="unban_approved"></el-option>
             <el-option label="禁售延期待审核" value="delay_pending"></el-option>
             <el-option label="禁售延期审核中" value="delay_reviewing"></el-option>
-            <el-option label="审核通过" value="approved"></el-option>
+            <el-option label="禁售延期审核通过" value="delay_approved"></el-option>
             <el-option label="驳回" value="rejected"></el-option>
           </el-select>
         </div>
@@ -864,10 +866,10 @@ new Vue({
     // ========== 通用 ==========
     statusText(status) {
       const map = {
-        draft: '草稿', pending: '禁售待审核', reviewing: '禁售审核中',
-        unban_pending: '解禁待审核', unban_reviewing: '解禁审核中',
-        delay_pending: '禁售延期待审核', delay_reviewing: '禁售延期审核中',
-        approved: '审核通过', rejected: '驳回'
+        draft: '草稿', pending: '禁售待审核', reviewing: '禁售审核中', approved: '禁售审核通过',
+        unban_pending: '解禁待审核', unban_reviewing: '解禁审核中', unban_approved: '解禁审核通过',
+        delay_pending: '禁售延期待审核', delay_reviewing: '禁售延期审核中', delay_approved: '禁售延期审核通过',
+        rejected: '驳回'
       };
       return map[status] || status;
     },
