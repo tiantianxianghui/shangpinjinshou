@@ -740,13 +740,6 @@
 
     <!-- ========== 日志弹窗 ========== -->
     <el-dialog :title="'操作日志 - 申请编号 ' + (logRow ? logRow.applyNo : '')" :visible.sync="logDialogVisible" width="750px" :close-on-click-modal="false">
-      <div v-if="logRow" style="margin-bottom: 16px; padding: 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px;">
-        <el-row :gutter="16">
-          <el-col :span="8"><strong>SKU：</strong>{{ logRow.sku }}</el-col>
-          <el-col :span="8"><strong>申请人：</strong>{{ logRow.applicant || '-' }}</el-col>
-          <el-col :span="8"><strong>状态：</strong><span class="status-tag" :class="'status-' + logRow.status">{{ statusText(logRow.status) }}</span></el-col>
-        </el-row>
-      </div>
       <el-table :data="logData" border style="width: 100%">
         <el-table-column prop="time" label="操作时间" width="180"></el-table-column>
         <el-table-column prop="user" label="操作人" width="120"></el-table-column>
