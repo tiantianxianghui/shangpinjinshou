@@ -237,7 +237,6 @@
       </el-button>
       <el-button size="small" class="btn-tool" @click="handleUnban">解禁</el-button>
       <el-button size="small" class="btn-tool" @click="handleDelay">禁售延期</el-button>
-      <el-button size="small" class="btn-tool" @click="batchChangeDialogVisible = true">批量禁售范围变更</el-button>
       <el-button size="small" class="btn-tool" @click="handleExport">
         <i class="el-icon-download"></i> 导出
       </el-button>
@@ -282,6 +281,7 @@
             <span style="color: #909399;">{{ scope.row.reasonDesc }}</span>
           </template>
         </el-table-column>
+        <el-table-column prop="prohibitDept" label="责任部门" width="110"></el-table-column>
         <el-table-column prop="solution" label="解决方案" min-width="120"></el-table-column>
         <el-table-column prop="applicant" label="申请人" width="100"></el-table-column>
         <el-table-column prop="applicantDept" label="申请人部门" width="100"></el-table-column>
@@ -355,7 +355,6 @@
               <el-button v-if="scope.row.status === 'draft' || scope.row.status === 'pending' || scope.row.status === 'rejected'" type="text" size="small" @click="handleDelete(scope.row)">删除</el-button>
               <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleSingleDelay(scope.row)">禁售延期</el-button>
               <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleSingleUnban(scope.row)">解禁</el-button>
-              <el-button v-if="scope.row.status === 'approved'" type="text" size="small" @click="handleScopeChange(scope.row)">禁售范围变更</el-button>
               <el-button type="text" size="small" @click="handleLog(scope.row)">日志</el-button>
             </div>
           </template>
@@ -806,7 +805,7 @@ new Vue({
           platform: 'vevor', salesMode: 'FBM', site: 'NO', shopAccount: '全部',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '', primaryReason: '利润不达标', secondaryReason: '负利润',
-          reasonDesc: '订单负利润统计达到阈值', solution: '',
+          reasonDesc: '订单负利润统计达到阈值', prohibitDept: '运营部', solution: '',
           applicant: 'OFC', applicantDept: '运营部', responsiblePerson: 'OFC', responsibleDept: '运营部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Amazon' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -823,7 +822,7 @@ new Vue({
           platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
-          reasonDesc: '测试', solution: '',
+          reasonDesc: '测试', prohibitDept: '合规部', solution: '',
           applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -840,7 +839,7 @@ new Vue({
           platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
-          reasonDesc: '测试', solution: '',
+          reasonDesc: '测试', prohibitDept: '合规部', solution: '',
           applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -857,7 +856,7 @@ new Vue({
           platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
-          reasonDesc: '测试', solution: '',
+          reasonDesc: '测试', prohibitDept: '合规部', solution: '',
           applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -874,7 +873,7 @@ new Vue({
           platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
-          reasonDesc: '测试', solution: '',
+          reasonDesc: '测试', prohibitDept: '合规部', solution: '',
           applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -891,7 +890,7 @@ new Vue({
           platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '', primaryReason: '合规问题', secondaryReason: '不符合法规',
-          reasonDesc: '测试', solution: '',
+          reasonDesc: '测试', prohibitDept: '合规部', solution: '',
           applicant: 'xiongyangfe', applicantDept: '运营部', responsiblePerson: 'xiongyangfe', responsibleDept: '运营部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -908,7 +907,7 @@ new Vue({
           platform: 'Amazon', salesMode: 'FBA', site: 'US', shopAccount: 'US-Store-01',
           market: '北美', logisticsArea: '美东', warehouse: '美东仓',
           expectedUnbanTime: '2026-12-01', primaryReason: '侵权', secondaryReason: '专利侵权',
-          reasonDesc: '产品涉嫌专利侵权', solution: '更换供应商',
+          reasonDesc: '产品涉嫌专利侵权', prohibitDept: '产品部', solution: '更换供应商',
           applicant: '张三', applicantDept: '运营部', responsiblePerson: '李四', responsibleDept: '产品部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Amazon' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -924,7 +923,7 @@ new Vue({
           platform: 'Amazon', salesMode: 'FBM', site: 'UK', shopAccount: 'UK-Store-02',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '2026-11-15', primaryReason: '质量问题', secondaryReason: '投诉率过高',
-          reasonDesc: '客户投诉率过高', solution: '改进产品质量',
+          reasonDesc: '客户投诉率过高', prohibitDept: '产品部', solution: '改进产品质量',
           applicant: '李四', applicantDept: '产品部', responsiblePerson: '李四', responsibleDept: '产品部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Amazon' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -940,7 +939,7 @@ new Vue({
           platform: '独立站', salesMode: 'FBM', site: 'US', shopAccount: '独立站主店',
           market: '北美', logisticsArea: '美西', warehouse: '美西仓',
           expectedUnbanTime: '2027-01-01', primaryReason: '合规问题', secondaryReason: '缺少认证',
-          reasonDesc: '不符合目标市场法规要求', solution: '调整产品规格',
+          reasonDesc: '不符合目标市场法规要求', prohibitDept: '合规部', solution: '调整产品规格',
           applicant: '王五', applicantDept: '合规部', responsiblePerson: '王五', responsibleDept: '合规部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: '独立站' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
@@ -956,7 +955,7 @@ new Vue({
           platform: 'Tiktok', salesMode: 'FBM', site: 'DE', shopAccount: '全部',
           market: '欧洲', logisticsArea: '欧洲仓', warehouse: '德国仓',
           expectedUnbanTime: '2026-11-30', primaryReason: '利润不达标', secondaryReason: '毛利率过低',
-          reasonDesc: '毛利率低于阈值5%', solution: '优化成本结构',
+          reasonDesc: '毛利率低于阈值5%', prohibitDept: '运营部', solution: '优化成本结构',
           applicant: '赵六', applicantDept: '运营部', responsiblePerson: '赵六', responsibleDept: '运营部',
           productNotifier: '张三', opsNotifier: '李四', opsNotifierList: [{ name: '李四', platform: 'Tiktok' }],
           planNotifier: '王五', purchaseNotifier: '赵六', logisticsNotifier: '孙七', serviceNotifier: '周八',
