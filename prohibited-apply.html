@@ -36,11 +36,11 @@
     .file-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #f5f7fa; border-radius: 4px; font-size: 13px; }
     .file-item .el-icon-close { cursor: pointer; color: #909399; }
     .file-item .el-icon-close:hover { color: #f56c6c; }
-    .notify-list { margin-top: 10px; }
-    .notify-item { display: flex; align-items: center; padding: 8px 12px; background: #f5f7fa; border-radius: 4px; margin-bottom: 8px; font-size: 13px; }
-    .notify-item .notify-role { color: #909399; width: 100px; flex-shrink: 0; }
-    .notify-item .notify-name { color: #303133; font-weight: 500; margin-right: 12px; }
-    .notify-item .notify-dimension { color: #409eff; font-size: 12px; background: #ecf5ff; padding: 2px 8px; border-radius: 3px; }
+    .notifier-edit-area { width: 100%; }
+    .notifier-edit-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .notifier-edit-label { color: #606266; font-size: 13px; min-width: 88px; padding-top: 8px; flex-shrink: 0; text-align: right; }
+    .ops-auto-notifiers { margin-bottom: 6px; }
+    .ops-auto-notifiers .el-tag { color: #409eff; background: #ecf5ff; border-color: #d9ecff; }
     .notify-group { margin-top: 12px; padding: 12px; background: #f5f7fa; border-radius: 4px; }
     .notify-group-title { font-size: 13px; color: #909399; margin-bottom: 8px; }
     .notify-sub-list { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -302,22 +302,59 @@
         <el-row :gutter="24">
           <el-col :span="24">
             <el-form-item label="告知人">
-              <div class="notify-list" v-if="notifyList.length > 0">
-                <div class="notify-item" v-for="(item, index) in notifyList" :key="index">
-                  <span class="notify-role">{{ item.role }}</span>
-                  <span class="notify-name">{{ item.name }}</span>
+              <div v-if="!form.primaryReason" style="color: #909399; font-size: 13px;">请先选择禁售原因，系统将自动匹配告知人</div>
+              <div v-else class="notifier-edit-area">
+                <div class="notifier-edit-row">
+                  <span class="notifier-edit-label">产品告知人</span>
+                  <el-select v-model="form.productNotifiers" multiple filterable allow-create default-first-option
+                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
+                    <el-option v-for="n in notifierCandidates.product" :key="n" :label="n" :value="n"></el-option>
+                  </el-select>
                 </div>
-                <div class="notify-group" v-if="opsNotifyList.length > 0">
-                  <div class="notify-group-title">运营告知人</div>
-                  <div class="notify-sub-list">
-                    <div class="notify-sub-item" v-for="(item, index) in opsNotifyList" :key="index">
-                      <span class="notify-dimension">{{ item.dimension }}</span>
-                      <span class="notify-name">{{ item.name }}</span>
+                <div class="notifier-edit-row">
+                  <span class="notifier-edit-label">计划告知人</span>
+                  <el-select v-model="form.planNotifiers" multiple filterable allow-create default-first-option
+                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
+                    <el-option v-for="n in notifierCandidates.plan" :key="n" :label="n" :value="n"></el-option>
+                  </el-select>
+                </div>
+                <div class="notifier-edit-row">
+                  <span class="notifier-edit-label">采购告知人</span>
+                  <el-select v-model="form.purchaseNotifiers" multiple filterable allow-create default-first-option
+                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
+                    <el-option v-for="n in notifierCandidates.purchase" :key="n" :label="n" :value="n"></el-option>
+                  </el-select>
+                </div>
+                <div class="notifier-edit-row">
+                  <span class="notifier-edit-label">物流告知人</span>
+                  <el-select v-model="form.logisticsNotifiers" multiple filterable allow-create default-first-option
+                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
+                    <el-option v-for="n in notifierCandidates.logistics" :key="n" :label="n" :value="n"></el-option>
+                  </el-select>
+                </div>
+                <div class="notifier-edit-row">
+                  <span class="notifier-edit-label">客服告知人</span>
+                  <el-select v-model="form.serviceNotifiers" multiple filterable allow-create default-first-option
+                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
+                    <el-option v-for="n in notifierCandidates.service" :key="n" :label="n" :value="n"></el-option>
+                  </el-select>
+                </div>
+                <div class="notifier-edit-row">
+                  <span class="notifier-edit-label">运营告知人</span>
+                  <div style="flex: 1;">
+                    <div class="ops-auto-notifiers" v-if="opsNotifyList.length > 0">
+                      <el-tag v-for="(item, idx) in opsNotifyList" :key="idx" size="small" style="margin-right: 6px; margin-bottom: 4px;">
+                        {{ item.dimension }}：{{ item.name }}
+                      </el-tag>
                     </div>
+                    <el-select v-model="form.opsNotifiers" multiple filterable allow-create default-first-option
+                      :placeholder="opsNotifyList.length > 0 ? '手动补充运营告知人' : '可搜索或手动输入新增'"
+                      :disabled="isApprovedEdit" style="width: 100%;">
+                      <el-option v-for="n in notifierCandidates.ops" :key="n" :label="n" :value="n"></el-option>
+                    </el-select>
                   </div>
                 </div>
               </div>
-              <div v-else style="color: #909399; font-size: 13px;">请先选择禁售原因，系统将自动匹配告知人</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -425,6 +462,13 @@ new Vue({
         solution: '',
         responsiblePerson: '',
         responsibleDept: '',
+        // 告知人（可多选搜索）
+        productNotifiers: [],
+        planNotifiers: [],
+        purchaseNotifiers: [],
+        logisticsNotifiers: [],
+        serviceNotifiers: [],
+        opsNotifiers: [],
         isSalesRecovery: '',
         linkRemovalType: '',
         remark: ''
@@ -461,7 +505,15 @@ new Vue({
         safety: ['合规部', '产品部']
       },
       prohibitDeptOptions: [],
-      notifyList: [],
+      // 告知人候选池（按角色分组）
+      notifierCandidates: {
+        product: ['赵产品', '钱产品', '孙产品', '李产品', '周产品'],
+        plan: ['周供应链', '钱计划', '孙计划', '李计划'],
+        purchase: ['吴采购', '钱采购', '孙采购'],
+        logistics: ['郑物流', '钱物流', '孙物流'],
+        service: ['冯客服', '钱客服', '孙客服', '李客服'],
+        ops: ['孙运营', '钱运营', '李运营', '王运营', '张运营', '陈运营', '刘运营', '杨运营']
+      },
       opsNotifyList: [],
       uploadedFiles: [],
       // 编辑模式
@@ -655,18 +707,27 @@ new Vue({
     },
     updateNotifyList() {
       if (!this.form.primaryReason) {
-        this.notifyList = [];
+        this.form.productNotifiers = [];
+        this.form.planNotifiers = [];
+        this.form.purchaseNotifiers = [];
+        this.form.logisticsNotifiers = [];
+        this.form.serviceNotifiers = [];
+        this.form.opsNotifiers = [];
         this.opsNotifyList = [];
         return;
       }
 
-      const list = [
-        { role: '产品告知人', name: '赵产品' },
-        { role: '计划告知人', name: '周供应链' },
-        { role: '采购告知人', name: '吴采购' },
-        { role: '物流告知人', name: '郑物流' },
-        { role: '客服告知人', name: '冯客服' }
-      ];
+      // 非运营告知人：根据禁售原因自动填充首位
+      const primaryAutoMap = {
+        infringement: '产品部', quality: '产品部', compliance: '合规部',
+        profit: '运营部', safety: '合规部'
+      };
+      this.form.productNotifiers = ['赵产品'];
+      this.form.planNotifiers = ['周供应链'];
+      this.form.purchaseNotifiers = ['吴采购'];
+      this.form.logisticsNotifiers = ['郑物流'];
+      this.form.serviceNotifiers = ['冯客服'];
+      this.form.opsNotifiers = [];
 
       // 运营告知人：根据平台、销售模式、站点组合生成不同的告知人
       const platforms = this.form.platformList.length > 0 ? this.form.platformList : [''];
@@ -699,7 +760,6 @@ new Vue({
         });
       });
 
-      this.notifyList = list;
       this.opsNotifyList = opsList;
     },
     triggerUpload() {
