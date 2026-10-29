@@ -221,6 +221,19 @@
             <el-option label="驳回" value="rejected"></el-option>
           </el-select>
         </div>
+        <div class="search-item hidden-row">
+          <label>申请时间</label>
+          <el-date-picker
+            v-model="searchForm.applyTimeRange"
+            type="daterange"
+            size="small"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="yyyy-MM-dd"
+            style="width: 220px;">
+          </el-date-picker>
+        </div>
         <div class="search-actions">
           <el-button type="primary" size="small" class="btn-search" @click="handleSearch">查 询</el-button>
           <el-button size="small" class="btn-reset" @click="handleReset">重 置</el-button>
@@ -633,7 +646,8 @@ new Vue({
         sku: '', productCode: '', prohibitType: '', market: '',
         logisticsArea: '', warehouse: '', isProhibited: 'yes',
         platform: '', salesMode: '', site: '', shopAccount: '',
-        primaryReason: '', secondaryReason: '', status: ''
+        primaryReason: '', secondaryReason: '', status: '',
+        applyTimeRange: null
       },
       tableData: [
         {
@@ -889,7 +903,8 @@ new Vue({
         sku: '', productCode: '', prohibitType: '', market: '',
         logisticsArea: '', warehouse: '', isProhibited: '',
         platform: '', salesMode: '', site: '', shopAccount: '',
-        primaryReason: '', secondaryReason: '', status: ''
+        primaryReason: '', secondaryReason: '', status: '',
+        applyTimeRange: null
       };
       this.$message.info('已重置查询条件');
     },
