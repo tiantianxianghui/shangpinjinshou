@@ -39,14 +39,8 @@
     .notifier-edit-area { width: 100%; }
     .notifier-edit-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
     .notifier-edit-label { color: #606266; font-size: 13px; min-width: 88px; padding-top: 8px; flex-shrink: 0; text-align: right; }
-    .ops-auto-notifiers { margin-bottom: 6px; }
-    .ops-auto-notifiers .el-tag { color: #409eff; background: #ecf5ff; border-color: #d9ecff; }
-    .notify-group { margin-top: 12px; padding: 12px; background: #f5f7fa; border-radius: 4px; }
-    .notify-group-title { font-size: 13px; color: #909399; margin-bottom: 8px; }
-    .notify-sub-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .notify-sub-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fff; border-radius: 4px; font-size: 13px; border: 1px solid #ebeef5; }
-    .notify-sub-item .notify-dimension { color: #409eff; font-size: 12px; background: #ecf5ff; padding: 2px 8px; border-radius: 3px; }
-    .notify-sub-item .notify-name { color: #303133; font-weight: 500; }
+    .auto-tag-row { margin-bottom: 6px; min-height: 28px; }
+    .auto-tag-row .auto-tag { background: #f4f4f5; border-color: #e9e9eb; color: #606266; margin-right: 6px; margin-bottom: 4px; cursor: not-allowed; }
     .breadcrumb { margin-bottom: 16px; font-size: 14px; color: #909399; }
     .breadcrumb a { color: #409eff; text-decoration: none; }
     .breadcrumb a:hover { color: #ff6600; }
@@ -306,50 +300,74 @@
               <div v-else class="notifier-edit-area">
                 <div class="notifier-edit-row">
                   <span class="notifier-edit-label">产品告知人</span>
-                  <el-select v-model="form.productNotifiers" multiple filterable allow-create default-first-option
-                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
-                    <el-option v-for="n in notifierCandidates.product" :key="n" :label="n" :value="n"></el-option>
-                  </el-select>
+                  <div style="flex: 1;">
+                    <div class="auto-tag-row">
+                      <el-tag v-for="n in autoProductNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                    </div>
+                    <el-select v-model="form.productNotifiers" multiple filterable allow-create default-first-option
+                      placeholder="手动补充产品告知人" :disabled="isApprovedEdit" style="width: 100%;">
+                      <el-option v-for="n in notifierCandidates.product" :key="n" :label="n" :value="n"></el-option>
+                    </el-select>
+                  </div>
                 </div>
                 <div class="notifier-edit-row">
                   <span class="notifier-edit-label">计划告知人</span>
-                  <el-select v-model="form.planNotifiers" multiple filterable allow-create default-first-option
-                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
-                    <el-option v-for="n in notifierCandidates.plan" :key="n" :label="n" :value="n"></el-option>
-                  </el-select>
+                  <div style="flex: 1;">
+                    <div class="auto-tag-row">
+                      <el-tag v-for="n in autoPlanNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                    </div>
+                    <el-select v-model="form.planNotifiers" multiple filterable allow-create default-first-option
+                      placeholder="手动补充计划告知人" :disabled="isApprovedEdit" style="width: 100%;">
+                      <el-option v-for="n in notifierCandidates.plan" :key="n" :label="n" :value="n"></el-option>
+                    </el-select>
+                  </div>
                 </div>
                 <div class="notifier-edit-row">
                   <span class="notifier-edit-label">采购告知人</span>
-                  <el-select v-model="form.purchaseNotifiers" multiple filterable allow-create default-first-option
-                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
-                    <el-option v-for="n in notifierCandidates.purchase" :key="n" :label="n" :value="n"></el-option>
-                  </el-select>
+                  <div style="flex: 1;">
+                    <div class="auto-tag-row">
+                      <el-tag v-for="n in autoPurchaseNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                    </div>
+                    <el-select v-model="form.purchaseNotifiers" multiple filterable allow-create default-first-option
+                      placeholder="手动补充采购告知人" :disabled="isApprovedEdit" style="width: 100%;">
+                      <el-option v-for="n in notifierCandidates.purchase" :key="n" :label="n" :value="n"></el-option>
+                    </el-select>
+                  </div>
                 </div>
                 <div class="notifier-edit-row">
                   <span class="notifier-edit-label">物流告知人</span>
-                  <el-select v-model="form.logisticsNotifiers" multiple filterable allow-create default-first-option
-                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
-                    <el-option v-for="n in notifierCandidates.logistics" :key="n" :label="n" :value="n"></el-option>
-                  </el-select>
+                  <div style="flex: 1;">
+                    <div class="auto-tag-row">
+                      <el-tag v-for="n in autoLogisticsNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                    </div>
+                    <el-select v-model="form.logisticsNotifiers" multiple filterable allow-create default-first-option
+                      placeholder="手动补充物流告知人" :disabled="isApprovedEdit" style="width: 100%;">
+                      <el-option v-for="n in notifierCandidates.logistics" :key="n" :label="n" :value="n"></el-option>
+                    </el-select>
+                  </div>
                 </div>
                 <div class="notifier-edit-row">
                   <span class="notifier-edit-label">客服告知人</span>
-                  <el-select v-model="form.serviceNotifiers" multiple filterable allow-create default-first-option
-                    placeholder="可搜索或手动输入新增" :disabled="isApprovedEdit" style="flex: 1;">
-                    <el-option v-for="n in notifierCandidates.service" :key="n" :label="n" :value="n"></el-option>
-                  </el-select>
+                  <div style="flex: 1;">
+                    <div class="auto-tag-row">
+                      <el-tag v-for="n in autoServiceNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                    </div>
+                    <el-select v-model="form.serviceNotifiers" multiple filterable allow-create default-first-option
+                      placeholder="手动补充客服告知人" :disabled="isApprovedEdit" style="width: 100%;">
+                      <el-option v-for="n in notifierCandidates.service" :key="n" :label="n" :value="n"></el-option>
+                    </el-select>
+                  </div>
                 </div>
                 <div class="notifier-edit-row">
                   <span class="notifier-edit-label">运营告知人</span>
                   <div style="flex: 1;">
-                    <div class="ops-auto-notifiers" v-if="opsNotifyList.length > 0">
-                      <el-tag v-for="(item, idx) in opsNotifyList" :key="idx" size="small" style="margin-right: 6px; margin-bottom: 4px;">
+                    <div class="auto-tag-row">
+                      <el-tag v-for="(item, idx) in opsNotifyList" :key="idx" size="small" closable="false" class="auto-tag">
                         {{ item.dimension }}：{{ item.name }}
                       </el-tag>
                     </div>
                     <el-select v-model="form.opsNotifiers" multiple filterable allow-create default-first-option
-                      :placeholder="opsNotifyList.length > 0 ? '手动补充运营告知人' : '可搜索或手动输入新增'"
-                      :disabled="isApprovedEdit" style="width: 100%;">
+                      placeholder="手动补充运营告知人" :disabled="isApprovedEdit" style="width: 100%;">
                       <el-option v-for="n in notifierCandidates.ops" :key="n" :label="n" :value="n"></el-option>
                     </el-select>
                   </div>
@@ -462,13 +480,19 @@ new Vue({
         solution: '',
         responsiblePerson: '',
         responsibleDept: '',
-        // 告知人（可多选搜索）
+        // 告知人（手动补充，可多选搜索）
         productNotifiers: [],
         planNotifiers: [],
         purchaseNotifiers: [],
         logisticsNotifiers: [],
         serviceNotifiers: [],
         opsNotifiers: [],
+        // 自动填充的告知人（只读展示）
+        autoProductNotifiers: [],
+        autoPlanNotifiers: [],
+        autoPurchaseNotifiers: [],
+        autoLogisticsNotifiers: [],
+        autoServiceNotifiers: [],
         isSalesRecovery: '',
         linkRemovalType: '',
         remark: ''
@@ -707,6 +731,11 @@ new Vue({
     },
     updateNotifyList() {
       if (!this.form.primaryReason) {
+        this.form.autoProductNotifiers = [];
+        this.form.autoPlanNotifiers = [];
+        this.form.autoPurchaseNotifiers = [];
+        this.form.autoLogisticsNotifiers = [];
+        this.form.autoServiceNotifiers = [];
         this.form.productNotifiers = [];
         this.form.planNotifiers = [];
         this.form.purchaseNotifiers = [];
@@ -717,17 +746,12 @@ new Vue({
         return;
       }
 
-      // 非运营告知人：根据禁售原因自动填充首位
-      const primaryAutoMap = {
-        infringement: '产品部', quality: '产品部', compliance: '合规部',
-        profit: '运营部', safety: '合规部'
-      };
-      this.form.productNotifiers = ['赵产品'];
-      this.form.planNotifiers = ['周供应链'];
-      this.form.purchaseNotifiers = ['吴采购'];
-      this.form.logisticsNotifiers = ['郑物流'];
-      this.form.serviceNotifiers = ['冯客服'];
-      this.form.opsNotifiers = [];
+      // 自动填充（只读，不可删除）
+      this.form.autoProductNotifiers = ['赵产品'];
+      this.form.autoPlanNotifiers = ['周供应链'];
+      this.form.autoPurchaseNotifiers = ['吴采购'];
+      this.form.autoLogisticsNotifiers = ['郑物流'];
+      this.form.autoServiceNotifiers = ['冯客服'];
 
       // 运营告知人：根据平台、销售模式、站点组合生成不同的告知人
       const platforms = this.form.platformList.length > 0 ? this.form.platformList : [''];
