@@ -302,7 +302,7 @@
                   <span class="notifier-edit-label">产品告知人</span>
                   <div style="flex: 1;">
                     <div class="auto-tag-row">
-                      <el-tag v-for="n in autoProductNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                      <el-tag v-for="n in form.autoProductNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
                     </div>
                     <el-select v-model="form.productNotifiers" multiple filterable allow-create default-first-option
                       placeholder="手动补充产品告知人" :disabled="isApprovedEdit" style="width: 100%;">
@@ -314,7 +314,7 @@
                   <span class="notifier-edit-label">计划告知人</span>
                   <div style="flex: 1;">
                     <div class="auto-tag-row">
-                      <el-tag v-for="n in autoPlanNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                      <el-tag v-for="n in form.autoPlanNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
                     </div>
                     <el-select v-model="form.planNotifiers" multiple filterable allow-create default-first-option
                       placeholder="手动补充计划告知人" :disabled="isApprovedEdit" style="width: 100%;">
@@ -326,7 +326,7 @@
                   <span class="notifier-edit-label">采购告知人</span>
                   <div style="flex: 1;">
                     <div class="auto-tag-row">
-                      <el-tag v-for="n in autoPurchaseNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                      <el-tag v-for="n in form.autoPurchaseNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
                     </div>
                     <el-select v-model="form.purchaseNotifiers" multiple filterable allow-create default-first-option
                       placeholder="手动补充采购告知人" :disabled="isApprovedEdit" style="width: 100%;">
@@ -338,7 +338,7 @@
                   <span class="notifier-edit-label">物流告知人</span>
                   <div style="flex: 1;">
                     <div class="auto-tag-row">
-                      <el-tag v-for="n in autoLogisticsNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                      <el-tag v-for="n in form.autoLogisticsNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
                     </div>
                     <el-select v-model="form.logisticsNotifiers" multiple filterable allow-create default-first-option
                       placeholder="手动补充物流告知人" :disabled="isApprovedEdit" style="width: 100%;">
@@ -350,7 +350,7 @@
                   <span class="notifier-edit-label">客服告知人</span>
                   <div style="flex: 1;">
                     <div class="auto-tag-row">
-                      <el-tag v-for="n in autoServiceNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
+                      <el-tag v-for="n in form.autoServiceNotifiers" :key="n" size="small" closable="false" class="auto-tag">{{ n }}</el-tag>
                     </div>
                     <el-select v-model="form.serviceNotifiers" multiple filterable allow-create default-first-option
                       placeholder="手动补充客服告知人" :disabled="isApprovedEdit" style="width: 100%;">
