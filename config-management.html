@@ -100,11 +100,11 @@
                   <span class="notifier-role">产品告知人：</span>
                   <span class="notifier-name">{{ scope.row.productNotifiers }}</span>
                 </div>
-                <div class="notifier-row" v-for="(op, oi) in (scope.row.opsNotifiersList || [])" :key="oi">
-                  <span class="notifier-role">运营告知人（{{ op.group }}）：</span>
-                  <span class="notifier-name">{{ op.names }}</span>
+                <div class="notifier-row" v-if="scope.row.opsNotifiersList && scope.row.opsNotifiersList.length">
+                  <span class="notifier-role">运营告知人：</span>
+                  <span class="notifier-name">{{ scope.row.opsNotifiersList.map(op => op.group + '：' + op.names).join('，') }}</span>
                 </div>
-                <div class="notifier-row" v-if="!(scope.row.opsNotifiersList && scope.row.opsNotifiersList.length) && scope.row.opsNotifiers">
+                <div class="notifier-row" v-else-if="scope.row.opsNotifiers">
                   <span class="notifier-role">运营告知人：</span>
                   <span class="notifier-name">{{ scope.row.opsNotifiers }}</span>
                 </div>
