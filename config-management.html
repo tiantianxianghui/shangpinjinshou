@@ -40,6 +40,8 @@
     .el-dialog__header { border-bottom: 1px solid #ebeef5; }
     .el-dialog__title { font-weight: 600; }
     .form-tip { font-size: 12px; color: #909399; margin-top: 4px; }
+    .ops-group-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .ops-group-label { font-size: 13px; color: #606266; min-width: 92px; text-align: right; flex-shrink: 0; }
     .form-error-tip { font-size: 12px; color: #f56c6c; margin-top: 4px; }
     .dialog-section-title { font-size: 14px; font-weight: 600; color: #303133; margin: 16px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #ebeef5; }
     .dialog-section-title:first-child { margin-top: 0; }
@@ -98,11 +100,11 @@
                   <span class="notifier-role">产品告知人：</span>
                   <span class="notifier-name">{{ scope.row.productNotifiers }}</span>
                 </div>
-                <div class="notifier-row" v-if="scope.row.opsNotifiersList && scope.row.opsNotifiersList.length">
-                  <span class="notifier-role">运营告知人：</span>
-                  <span class="notifier-name">{{ scope.row.opsNotifiersList.map(op => op.name).join('、') }}</span>
+                <div class="notifier-row" v-for="(op, oi) in (scope.row.opsNotifiersList || [])" :key="oi">
+                  <span class="notifier-role">运营告知人（{{ op.group }}）：</span>
+                  <span class="notifier-name">{{ op.names }}</span>
                 </div>
-                <div class="notifier-row" v-else-if="scope.row.opsNotifiers">
+                <div class="notifier-row" v-if="!(scope.row.opsNotifiersList && scope.row.opsNotifiersList.length) && scope.row.opsNotifiers">
                   <span class="notifier-role">运营告知人：</span>
                   <span class="notifier-name">{{ scope.row.opsNotifiers }}</span>
                 </div>
@@ -179,10 +181,37 @@
           <div class="form-tip">除此之外会默认告知sku对应品类经理</div>
         </el-form-item>
         <el-form-item label="运营告知人">
-          <el-select v-model="reasonForm.opsNotifiers" multiple filterable placeholder="请选择" style="width: 100%;">
-            <el-option v-for="u in allUsers" :key="u.value" :label="u.label" :value="u.value"></el-option>
-          </el-select>
-          <div class="form-tip">除此之外会默认告知sku对应运营人员</div>
+          <div class="ops-group-row">
+            <span class="ops-group-label">新平台整体</span>
+            <el-select v-model="reasonForm.opsNewPlatform" multiple filterable placeholder="请选择" style="flex: 1;">
+              <el-option v-for="u in allUsers" :key="u.value" :label="u.label" :value="u.value"></el-option>
+            </el-select>
+          </div>
+          <div class="ops-group-row">
+            <span class="ops-group-label">Amazon整体</span>
+            <el-select v-model="reasonForm.opsAmazon" multiple filterable placeholder="请选择" style="flex: 1;">
+              <el-option v-for="u in allUsers" :key="u.value" :label="u.label" :value="u.value"></el-option>
+            </el-select>
+          </div>
+          <div class="ops-group-row">
+            <span class="ops-group-label">Vevor整体</span>
+            <el-select v-model="reasonForm.opsVevor" multiple filterable placeholder="请选择" style="flex: 1;">
+              <el-option v-for="u in allUsers" :key="u.value" :label="u.label" :value="u.value"></el-option>
+            </el-select>
+          </div>
+          <div class="ops-group-row">
+            <span class="ops-group-label">TT整体</span>
+            <el-select v-model="reasonForm.opsTT" multiple filterable placeholder="请选择" style="flex: 1;">
+              <el-option v-for="u in allUsers" :key="u.value" :label="u.label" :value="u.value"></el-option>
+            </el-select>
+          </div>
+          <div class="ops-group-row">
+            <span class="ops-group-label">Vstore整体</span>
+            <el-select v-model="reasonForm.opsVstore" multiple filterable placeholder="请选择" style="flex: 1;">
+              <el-option v-for="u in allUsers" :key="u.value" :label="u.label" :value="u.value"></el-option>
+            </el-select>
+          </div>
+          <div class="form-tip">按平台组配置运营告知人，除此之外会默认告知sku对应运营人员</div>
         </el-form-item>
         <el-form-item label="计划告知人">
           <el-select v-model="reasonForm.planNotifiers" multiple filterable placeholder="请选择" style="width: 100%;">
@@ -269,7 +298,7 @@ new Vue({
         {
           id: 1, primaryReason: '侵权', secondaryReason: '专利侵权',
           productNotifiers: '张三', opsNotifiers: '李四',
-          opsNotifiersList: [{ name: '李四', platform: 'Amazon' }],
+          opsNotifiersList: [{ group: 'Amazon整体', names: '李四' }, { group: 'Vevor整体', names: '王五' }],
           planNotifiers: '王五', purchaseNotifiers: '赵六',
           logisticsNotifiers: '孙七', serviceNotifiers: '周八',
           responsibleDept: '产品部', createTime: '2026-01-15 10:00:00', status: 'enable'
@@ -277,7 +306,7 @@ new Vue({
         {
           id: 2, primaryReason: '侵权', secondaryReason: '商标侵权',
           productNotifiers: '张三', opsNotifiers: '李四',
-          opsNotifiersList: [{ name: '李四', platform: 'Amazon' }],
+          opsNotifiersList: [{ group: 'Amazon整体', names: '李四' }, { group: 'Vevor整体', names: '王五' }],
           planNotifiers: '王五', purchaseNotifiers: '赵六',
           logisticsNotifiers: '孙七', serviceNotifiers: '周八',
           responsibleDept: '产品部', createTime: '2026-01-15 10:05:00', status: 'enable'
@@ -285,7 +314,7 @@ new Vue({
         {
           id: 3, primaryReason: '侵权', secondaryReason: '版权侵权',
           productNotifiers: '张三', opsNotifiers: '李四',
-          opsNotifiersList: [{ name: '李四', platform: 'Amazon' }],
+          opsNotifiersList: [{ group: 'Amazon整体', names: '李四' }, { group: 'Vevor整体', names: '王五' }],
           planNotifiers: '王五', purchaseNotifiers: '赵六',
           logisticsNotifiers: '孙七', serviceNotifiers: '周八',
           responsibleDept: '合规部', createTime: '2026-01-15 10:10:00', status: 'disable'
@@ -293,7 +322,7 @@ new Vue({
         {
           id: 4, primaryReason: '质量问题', secondaryReason: '产品缺陷',
           productNotifiers: '张三', opsNotifiers: '李四',
-          opsNotifiersList: [{ name: '李四', platform: 'Amazon' }],
+          opsNotifiersList: [{ group: 'Amazon整体', names: '李四' }, { group: 'Vevor整体', names: '王五' }],
           planNotifiers: '王五', purchaseNotifiers: '赵六',
           logisticsNotifiers: '孙七', serviceNotifiers: '周八',
           responsibleDept: '产品部', createTime: '2026-02-01 09:00:00', status: 'enable'
@@ -301,7 +330,7 @@ new Vue({
         {
           id: 5, primaryReason: '质量问题', secondaryReason: '投诉率过高',
           productNotifiers: '张三', opsNotifiers: '李四',
-          opsNotifiersList: [{ name: '李四', platform: 'Amazon' }],
+          opsNotifiersList: [{ group: 'Amazon整体', names: '李四' }, { group: 'Vevor整体', names: '王五' }],
           planNotifiers: '王五', purchaseNotifiers: '赵六',
           logisticsNotifiers: '孙七', serviceNotifiers: '周八',
           responsibleDept: '客服部', createTime: '2026-02-01 09:05:00', status: 'enable'
@@ -309,7 +338,7 @@ new Vue({
         {
           id: 6, primaryReason: '合规问题', secondaryReason: '不符合法规',
           productNotifiers: '吴九', opsNotifiers: '李四',
-          opsNotifiersList: [{ name: '李四', platform: 'Amazon' }],
+          opsNotifiersList: [{ group: 'Amazon整体', names: '李四' }, { group: 'Vevor整体', names: '王五' }],
           planNotifiers: '王五', purchaseNotifiers: '赵六',
           logisticsNotifiers: '孙七', serviceNotifiers: '周八',
           responsibleDept: '合规部', createTime: '2026-03-10 14:00:00', status: 'enable'
@@ -317,7 +346,7 @@ new Vue({
         {
           id: 7, primaryReason: '利润不达标', secondaryReason: '毛利率过低',
           productNotifiers: '张三', opsNotifiers: '李四',
-          opsNotifiersList: [{ name: '李四', platform: 'Amazon' }],
+          opsNotifiersList: [{ group: 'Amazon整体', names: '李四' }, { group: 'Vevor整体', names: '王五' }],
           planNotifiers: '王五', purchaseNotifiers: '赵六',
           logisticsNotifiers: '孙七', serviceNotifiers: '周八',
           responsibleDept: '运营部', createTime: '2026-04-20 11:00:00', status: 'enable'
@@ -333,7 +362,7 @@ new Vue({
       reasonDialogTitle: '新增禁售原因',
       reasonForm: {
         id: null, primaryReason: '', secondaryReason: '',
-        productNotifiers: [], opsNotifiers: [], planNotifiers: [],
+        productNotifiers: [], opsNewPlatform: [], opsAmazon: [], opsVevor: [], opsTT: [], opsVstore: [], planNotifiers: [],
         purchaseNotifiers: [], logisticsNotifiers: [], serviceNotifiers: [],
         responsibleDept: []
       },
@@ -360,12 +389,18 @@ new Vue({
         this.reasonDialogTitle = '编辑禁售原因';
         const deptMap = { '产品部': 'product', '运营部': 'operations', '计划部': 'planning', '采购部': 'procurement', '物流部': 'logistics', '客服部': 'customer_service', '合规部': 'compliance', '供应链部': 'supply_chain' };
         const userMap = { '张三': 'zhangsan', '李四': 'lisi', '王五': 'wangwu', '赵六': 'zhaoliu', '孙七': 'sunqi', '周八': 'zhouba', '吴九': 'wujiu', '郑十': 'zhengshi' };
+        const groupReverse = { '新平台整体': 'opsNewPlatform', 'Amazon整体': 'opsAmazon', 'Vevor整体': 'opsVevor', 'TT整体': 'opsTT', 'Vstore整体': 'opsVstore' };
+        const opsGroups = { opsNewPlatform: [], opsAmazon: [], opsVevor: [], opsTT: [], opsVstore: [] };
+        (row.opsNotifiersList || []).forEach(op => {
+          const f = groupReverse[op.group];
+          if (f) opsGroups[f] = String(op.names).split('、').map(n => userMap[n] || '').filter(Boolean);
+        });
         this.reasonForm = {
           id: row.id,
           primaryReason: row.primaryReason,
           secondaryReason: row.secondaryReason || '',
           productNotifiers: row.productNotifiers ? [userMap[row.productNotifiers] || ''] : [],
-          opsNotifiers: row.opsNotifiers ? [userMap[row.opsNotifiers] || ''] : [],
+          ...opsGroups,
           planNotifiers: row.planNotifiers ? [userMap[row.planNotifiers] || ''] : [],
           purchaseNotifiers: row.purchaseNotifiers ? [userMap[row.purchaseNotifiers] || ''] : [],
           logisticsNotifiers: row.logisticsNotifiers ? [userMap[row.logisticsNotifiers] || ''] : [],
@@ -376,7 +411,7 @@ new Vue({
         this.reasonDialogTitle = '新增禁售原因';
         this.reasonForm = {
           id: null, primaryReason: '', secondaryReason: '',
-          productNotifiers: [], opsNotifiers: [], planNotifiers: [],
+          productNotifiers: [], opsNewPlatform: [], opsAmazon: [], opsVevor: [], opsTT: [], opsVstore: [], planNotifiers: [],
           purchaseNotifiers: [], logisticsNotifiers: [], serviceNotifiers: [],
           responsibleDept: []
         };
@@ -410,15 +445,29 @@ new Vue({
         String(now.getMinutes()).padStart(2, '0') + ':' +
         String(now.getSeconds()).padStart(2, '0');
 
-      const opsNames = this.reasonForm.opsNotifiers.map(v => userLabelMap[v] || v);
-      const opsList = opsNames.map(name => ({ name: name, platform: 'Amazon' }));
+      const groupDefs = [
+        { field: 'opsNewPlatform', group: '新平台整体' },
+        { field: 'opsAmazon', group: 'Amazon整体' },
+        { field: 'opsVevor', group: 'Vevor整体' },
+        { field: 'opsTT', group: 'TT整体' },
+        { field: 'opsVstore', group: 'Vstore整体' }
+      ];
+      const opsList = [];
+      const opsAllNames = [];
+      groupDefs.forEach(g => {
+        const names = (this.reasonForm[g.field] || []).map(v => userLabelMap[v] || v);
+        if (names.length) {
+          opsList.push({ group: g.group, names: names.join('、') });
+          opsAllNames.push(...names);
+        }
+      });
 
       const newItem = {
         id: this.reasonForm.id || Date.now(),
         primaryReason: this.reasonForm.primaryReason,
         secondaryReason: this.reasonForm.secondaryReason,
         productNotifiers: this.reasonForm.productNotifiers.map(v => userLabelMap[v] || v).join('、'),
-        opsNotifiers: opsNames.join('、'),
+        opsNotifiers: opsAllNames.join('、'),
         opsNotifiersList: opsList,
         planNotifiers: this.reasonForm.planNotifiers.map(v => userLabelMap[v] || v).join('、'),
         purchaseNotifiers: this.reasonForm.purchaseNotifiers.map(v => userLabelMap[v] || v).join('、'),

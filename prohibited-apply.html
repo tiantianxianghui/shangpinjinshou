@@ -407,11 +407,62 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="链接下架类型">
-              <el-select v-model="form.linkRemovalType" placeholder="请选择" :disabled="isApprovedEdit">
+              <el-select v-model="form.linkRemovalType" placeholder="请选择">
                 <el-option label="无需删除前台listing" value="no_removal"></el-option>
                 <el-option label="前台删除listing" value="remove_listing"></el-option>
                 <el-option label="前台listing拉黑（独立站）" value="blacklist"></el-option>
                 <el-option label="平台无法删除链接-改乱页面" value="messy_page"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="是否可售库存为0" required>
+              <el-select v-model="form.stockZero" placeholder="请选择" disabled>
+                <el-option label="是" value="yes"></el-option>
+                <el-option label="否" value="no"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否SEM映射下架" required>
+              <el-select v-model="form.semUnlink" placeholder="请选择" :disabled="isApprovedEdit">
+                <el-option label="是" value="yes"></el-option>
+                <el-option label="否" value="no"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否停止采购订单（含人工）" label-width="200px" required>
+              <el-select v-model="form.stopPurchase" placeholder="请选择" :disabled="isApprovedEdit">
+                <el-option label="是" value="yes"></el-option>
+                <el-option label="否" value="no"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否停止在途采购单" required>
+              <el-select v-model="form.stopTransit" placeholder="请选择" :disabled="isApprovedEdit">
+                <el-option label="是" value="yes"></el-option>
+                <el-option label="否" value="no"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否停止调拨单/分货单" required>
+              <el-select v-model="form.stopTransfer" placeholder="请选择" :disabled="isApprovedEdit">
+                <el-option label="是" value="yes"></el-option>
+                <el-option label="否" value="no"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否停止移仓单" required>
+              <el-select v-model="form.stopMove" placeholder="请选择" :disabled="isApprovedEdit">
+                <el-option label="是" value="yes"></el-option>
+                <el-option label="否" value="no"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -497,6 +548,12 @@ new Vue({
         autoServiceNotifiers: [],
         isSalesRecovery: '',
         linkRemovalType: '',
+        stockZero: 'yes',
+        semUnlink: 'yes',
+        stopPurchase: 'yes',
+        stopTransit: 'yes',
+        stopTransfer: 'yes',
+        stopMove: 'yes',
         remark: ''
       },
       errors: {

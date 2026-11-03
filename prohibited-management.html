@@ -357,6 +357,24 @@
           <template slot-scope="scope">{{ scope.row.isSalesRecovery === 'yes' ? '是' : '否' }}</template>
         </el-table-column>
         <el-table-column prop="linkRemovalType" label="链接下架类型" min-width="140"></el-table-column>
+        <el-table-column label="是否可售库存为0" width="130">
+          <template slot-scope="scope">{{ scope.row.stockZero || '是' }}</template>
+        </el-table-column>
+        <el-table-column label="是否SEM映射下架" width="130">
+          <template slot-scope="scope">{{ scope.row.semUnlink || '是' }}</template>
+        </el-table-column>
+        <el-table-column label="是否停止采购订单（含人工）" width="170">
+          <template slot-scope="scope">{{ scope.row.stopPurchase || '是' }}</template>
+        </el-table-column>
+        <el-table-column label="是否停止在途采购单" width="140">
+          <template slot-scope="scope">{{ scope.row.stopTransit || '是' }}</template>
+        </el-table-column>
+        <el-table-column label="是否停止调拨单/分货单" width="150">
+          <template slot-scope="scope">{{ scope.row.stopTransfer || '是' }}</template>
+        </el-table-column>
+        <el-table-column label="是否停止移仓单" width="120">
+          <template slot-scope="scope">{{ scope.row.stopMove || '是' }}</template>
+        </el-table-column>
         <el-table-column prop="remark" label="备注说明" min-width="120"></el-table-column>
         <el-table-column prop="attachment" label="附件" width="80" align="center">
           <template slot-scope="scope">
