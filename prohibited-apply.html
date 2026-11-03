@@ -398,7 +398,7 @@
 
         <el-row :gutter="24">
           <el-col :span="12">
-            <el-form-item label="是否销售在途追回">
+            <el-form-item label="是否销售在途追回" required>
               <el-select v-model="form.isSalesRecovery" placeholder="请选择" :disabled="isApprovedEdit">
                 <el-option label="是" value="yes"></el-option>
                 <el-option label="否" value="no"></el-option>
@@ -406,7 +406,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="链接下架类型">
+            <el-form-item label="链接下架类型" required>
               <el-select v-model="form.linkRemovalType" placeholder="请选择">
                 <el-option label="无需删除前台listing" value="no_removal"></el-option>
                 <el-option label="前台删除listing" value="remove_listing"></el-option>
